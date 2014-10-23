@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Object Tracker</string>
+    <string name="action_settings">Ustawienia</string>
+    <string name="main_action_about">O autorze</string>
+    <string name="main_action_licences">Licencje</string>
+    <string name="main_mode_select_desc_str">Wybierz tryb działania:</string>
+    <string name="butt_main_calibrate_str">Skalibruj telefon</string>
+    <string name="butt_main_recognize_str">Rozpoznaj tagi</string>
+    <string name="title_activity_recognize">Rozpoznawacz</string>
+    <string name="recognize_button_screenshot">Zrzut Ekranu</string>
+    <string name="title_activity_calibrate">Kalibrator</string>
+    <string name="recognize_action_resolution">Rozdzielczość</string>
+    <string name="resolution_dialog_ok">OK</string>
+    <string name="title_activity_marker_generator">Generator Markerów</string>
+    <string name="butt_main_generate_str">Generuj Tagi</string>
+    <string name="title_activity_about">Autor aplikacji</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_licences">Postanowania Licencyjne</string>
+    <string name="title_activity_opengl_test">OpenGL ES 2.0 test</string>
+    <string name="title_activity_driver">Sterownik Silników</string>
+    <string name="butt_main_driver">Sterownik Silników</string>
+    <string name="calibrate_activity_addframe">Dodaj ramkę</string>
+    <string name="calibrate_activity_process">Przetwórz</string>
+    <string name="butt_main_opengl_test">Testuj OpenGL ES 2.0</string>
+
+</resources>

@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="simple.as.fuck.objecttrackerv2.MainActivity" >
+
+    <item
+        android:id="@+id/recognize_action_resolution"
+        android:orderInCategory="100"
+        android:title="@string/recognize_action_resolution"/>
+
+</menu>
