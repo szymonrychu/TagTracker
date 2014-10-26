@@ -14,16 +14,16 @@
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 
-bool debug = true;
 
 using namespace cv;
 using namespace std;
+
+bool debug = true;
 
 
 #define APPNAME "Native"
 
 extern "C" {
-
 	static jclass jMatCls;
 	static jmethodID jMatGetNatAddr;
 	static jmethodID jMatConsID;
