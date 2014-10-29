@@ -5,11 +5,22 @@
     tools:context="simple.as.fuck.objecttrackerv2.markergen.MarkerGeneratorActivity" >
 
     <ImageView
-        android:id="@+id/driver_imageView"
+        android:id="@+id/imageView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:src="@drawable/ic_launcher" />
+
+    <TextView
+        android:id="@+id/logcat_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/imageView1"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/imageView1"
+        android:text="Large Text"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
 </RelativeLayout>

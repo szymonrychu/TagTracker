@@ -63,12 +63,22 @@ public class DriverActivity extends FullScreenActivity implements Callback, Runn
 		controlsHelper = new ControlsHelper(driverView);
 		controlsHelper.setControlsCallback(this);
 		
-		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
 	}
 	void drawControls(Canvas canvas){
 		
 	}
-	
+	@Override
+	protected void onResume() {
+		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
+		super.onResume();
+	}
+	@Override
+	protected void onPause() {
+		if(driverHelper != null){
+			driverHelper.unregisterReceiver();
+		}
+		super.onPause();
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -176,7 +186,7 @@ public class DriverActivity extends FullScreenActivity implements Callback, Runn
 		Y = procY;
 		int steer, lFront, lBack, rFront, rBack;
 		int steerCenter = (steerMax - steerMin)/2 + steerMin;
-		steer = steerCenter - (int)(procX*((steerMax - steerMin)/2));
+		steer = steerCenter + (int)(procX*((steerMax - steerMin)/2));
 
 		lBack = procY > 0 ? procX > 0 ? (int)(procY*255) : Math.max((int)(procY*255)+(int)(procX*50),0) : 0;//leftT
 		lFront = procY < 0 ? procX > 0 ? -(int)(procY*255) : Math.max(-(int)(procY*255)+(int)(procX*50),0) : 0;//leftP

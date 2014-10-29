@@ -7,10 +7,13 @@ import java.util.Locale;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 
+import com.richert.tagtracker.MainActivity;
 import com.richert.tagtracker.R;
 import com.richert.tagtracker.R.id;
 import com.richert.tagtracker.R.layout;
 import com.richert.tagtracker.R.menu;
+import com.richert.tagtracker.calibrator.CalibrateActivity;
+import com.richert.tagtracker.driver.DriverActivity;
 import com.richert.tagtracker.driver.DriverHelper;
 import com.richert.tagtracker.elements.CameraDrawerPreview;
 import com.richert.tagtracker.elements.Constants;
@@ -20,11 +23,14 @@ import com.richert.tagtracker.elements.Pointer;
 import com.richert.tagtracker.elements.ResolutionDialog;
 import com.richert.tagtracker.elements.CameraDrawerPreview.CameraProcessingCallback;
 import com.richert.tagtracker.elements.CameraDrawerPreview.CameraSetupCallback;
+import com.richert.tagtracker.elements.TextToSpeechToText;
 import com.richert.tagtracker.geomerty.Tag;
+import com.richert.tagtracker.markergen.MarkerGeneratorActivity;
 import com.richert.tagtracker.natUtils.Misc;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -39,12 +45,14 @@ import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.animation.RotateAnimation;
 import android.widget.Button;
 
 public class RecognizeActivity extends FullScreenActivity implements CameraSetupCallback, CameraProcessingCallback{
 	private final static String TAG=RecognizeActivity.class.getSimpleName();
+	private static final int ID = RecognizeActivity.class.hashCode();
 	private CameraDrawerPreview preview = null;
 	private Camera.Parameters params = null;
 	private Recognizer recognizer;
@@ -56,9 +64,13 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private Mat cameraMatrix, distortionMatrix;
 	private Boolean showPreview = false;
 	private Tag[] tags;
-	private Paint paint;
+	private Paint greenPaint;
+	private Paint redPaint;
 	private DriverHelper driverHelper;
 	public int trackedID = 1;
+	private TextToSpeechToText ttstt;
+	private Boolean asked = false;
+	private Thread askingThread;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_recognize);
@@ -78,13 +90,35 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		});
 		cameraMatrix = helper.loadCameraMatrix();
 		distortionMatrix = helper.loadDistortionMatrix();
-		paint = new Paint();
-		paint.setAntiAlias(true);
-		paint.setColor(Color.GREEN);
-		paint.setStrokeWidth(7.0f);
-		paint.setTextSize(25.0f);
-		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
+		greenPaint = new Paint();
+		greenPaint.setAntiAlias(true);
+		greenPaint.setColor(Color.GREEN);
+		greenPaint.setStrokeWidth(7.0f);
+		greenPaint.setTextSize(25.0f);
+		redPaint = new Paint();
+		redPaint.setAntiAlias(true);
+		redPaint.setColor(Color.RED);
+		redPaint.setStrokeWidth(7.0f);
+		redPaint.setTextSize(25.0f);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		ttstt = new TextToSpeechToText(this);
 		super.onCreate(savedInstanceState);
+	}
+	@Override
+	protected void onResume() {
+		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
+		if(asked != true){
+			asked = true;
+			ttstt.ask("what tag number should I follow?",ID);
+		}
+		super.onResume();
+	}
+	@Override
+	protected void onPause() {
+		if(driverHelper != null){
+			driverHelper.unregisterReceiver();
+		}
+		super.onPause();
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -145,21 +179,23 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		if(tags!=null){
 			int x=0;
 			int y=0;
-			
 			for(Tag tag : tags){
 				float X=0;
 				float Y=0;
-				for(int c=0;c<4;c++){
-					canvas.drawLine(tag.points[c].x*viewWidth, tag.points[c].y*viewHeight, tag.points[(c+1)%4].x*viewWidth, tag.points[(c+1)%4].y*viewHeight, paint);
-					X+=tag.points[c].x;
-					Y+=tag.points[c].y;
-					
-				}
-				flag = true;
-				canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), x, y , paint);
-				canvas.drawText(""+tag.id, (X*camWidth)/4, (Y*camHeight)/4, paint);
-				x+=tag.preview.cols();
+				
 				if(tag.id == trackedID){
+					for(int c=0;c<4;c++){
+						canvas.drawLine(tag.points[c].x*viewWidth, tag.points[c].y*viewHeight, tag.points[(c+1)%4].x*viewWidth, tag.points[(c+1)%4].y*viewHeight, greenPaint);
+						X+=tag.points[c].x;
+						Y+=tag.points[c].y;
+						
+					}
+					flag = true;
+					canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), x, y , greenPaint);
+					canvas.drawText(""+tag.id, (X*camWidth)/4, (Y*camHeight)/4, greenPaint);
+					
+					
+					
 					final float lastX =((float)X/4);
 					Log.d(TAG,"blah"+(float)(2*(lastX-0.5f)));
 					Log.d(TAG,"w"+viewWidth);
@@ -177,7 +213,29 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 							}.run();
 						}
 					}
+				}else{
+					for(int c=0;c<4;c++){
+						canvas.drawLine(tag.points[c].x*viewWidth, tag.points[c].y*viewHeight, tag.points[(c+1)%4].x*viewWidth, tag.points[(c+1)%4].y*viewHeight, redPaint);
+						X+=tag.points[c].x;
+						Y+=tag.points[c].y;
+					}
+					flag = true;
+					canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), x, y , redPaint);
+					canvas.drawText(""+tag.id, (X*camWidth)/4, (Y*camHeight)/4, redPaint);
+					asked = false;
+					askingThread = new Thread(){
+						public void run() {
+							if(asked != true){
+								asked = true;
+								ttstt.ask("I see another tag, what tag number should I follow?",ID);
+							}
+						};
+					};
+					if(!askingThread.isAlive() && !ttstt.isSpeaking){
+						askingThread.start();
+					}
 				}
+				x+=tag.preview.cols();
 			}
 			
 		}else{
@@ -224,7 +282,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	public void steer(float procX, float procY){
 		int steer, lFront, lBack, rFront, rBack;
 		int steerCenter = (steerMax - steerMin)/2 + steerMin;
-		steer = steerCenter - (int)(procX*((steerMax - steerMin)/2));
+		steer = steerCenter - (int)(procX*((steerMax + steerMin)/2));
 
 		lBack = Math.min(procY > 0 ? procX > 0 ? (int)(procY*255) : Math.max((int)(procY*255)+(int)(procX*50),0) : 0, 255);//leftT
 		lFront = Math.min(procY < 0 ? procX > 0 ? -(int)(procY*255) : Math.max(-(int)(procY*255)+(int)(procX*50),0) : 0, 255);//leftP
@@ -236,4 +294,25 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		sent = ""+steer+","+lFront+","+lBack+","+rFront+","+rBack+",";
 		driverHelper.send(sent.getBytes());
 	}
+
+	@Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        String response = ttstt.getResponse(requestCode, resultCode, data, ID);
+        Boolean flag = true;
+        if(response != null){
+	        Log.v(TAG,response);
+	        trackedID = ttstt.stringToInt(response);
+	        Log.v(TAG,""+trackedID);
+	        if(trackedID>0){
+	        	ttstt.speak("following tag: "+trackedID);
+	        	flag = false;
+	        }else{
+	        	
+	        }
+        }
+        if(flag){
+			ttstt.ask("what tag number should I follow?",ID);
+        }
+    }
 }

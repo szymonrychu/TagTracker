@@ -30,7 +30,7 @@ public class Calibrator {
 	
 	long ptr = 0;
 	public Calibrator() {
-		ptr = newCalibratorNtv(6,9);
+		ptr = newCalibratorNtv(6,8);
 	}
 	@Override
 	protected void finalize() throws Throwable {

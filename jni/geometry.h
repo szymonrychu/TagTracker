@@ -30,8 +30,8 @@ public:
 				env->SetFloatField(result,yID,((float)y/matSize.height));
 			break;
 			case(ROTATION_PORTRAIT):
-				env->SetFloatField(result,xID,((float)(matSize.height - y)/matSize.width));
-				env->SetFloatField(result,yID,((float)x/matSize.height));
+				env->SetFloatField(result,xID,((float)(matSize.height - y)/(matSize.width)));
+				env->SetFloatField(result,yID,((float)x/(matSize.height)));
 			break;
 			case(ROTATION_LANDS_UPSIDE_DOWN):
 				env->SetFloatField(result,xID,((float)(matSize.width - x)/matSize.width));

@@ -17,7 +17,7 @@
         android:src="@drawable/photo" />
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/logcat_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"

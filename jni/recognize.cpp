@@ -144,7 +144,7 @@ public:
 		this->imageSize = imageSize;
 		this->blockSize = 45;
 		this->adaptThresh = 5.0;
-		this->maxTagSize = 0.95;
+		this->maxTagSize = 0.99;
 		this->minTagSize = 0.01;
 		this->normSize = 50;
 		this->tagSize = 5;

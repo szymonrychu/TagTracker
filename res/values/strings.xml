@@ -20,9 +20,12 @@
     <string name="title_activity_licences">Postanowania Licencyjne</string>
     <string name="title_activity_opengl_test">OpenGL ES 2.0 test</string>
     <string name="title_activity_driver">Sterownik Silników</string>
+    <string name="title_activity_logcat">LogCat</string>
     <string name="butt_main_driver">Sterownik Silników</string>
     <string name="calibrate_activity_addframe">Dodaj ramkę</string>
     <string name="calibrate_activity_process">Przetwórz</string>
     <string name="butt_main_opengl_test">Testuj OpenGL ES 2.0</string>
+    <string name="butt_main_logcat_str">Logcat</string>
+    <string name="main_action_logcat">Logcat</string>
 
 </resources>

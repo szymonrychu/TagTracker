@@ -9,7 +9,7 @@
     tools:context="simple.as.fuck.objecttrackerv2.MainActivity" >
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/logcat_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -22,9 +22,9 @@
         android:id="@+id/butt_main_calibrate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView1"
-        android:layout_alignRight="@+id/textView1"
-        android:layout_below="@+id/textView1"
+        android:layout_alignLeft="@+id/logcat_text_view"
+        android:layout_alignRight="@+id/logcat_text_view"
+        android:layout_below="@+id/logcat_text_view"
         android:text="@string/butt_main_calibrate_str" />
 
     <Button
@@ -54,5 +54,13 @@
         android:layout_below="@+id/butt_main_driver"
         android:text="@string/butt_main_generate_str" />
 
+    <ProgressBar
+        android:id="@+id/progressBar_main"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true" />
 
 </RelativeLayout>
