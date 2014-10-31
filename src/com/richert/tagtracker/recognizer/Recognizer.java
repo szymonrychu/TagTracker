@@ -22,30 +22,19 @@ public class Recognizer {
 	}
 	private final static String TAG = Recognizer.class.getSimpleName();
 	private long ptr = 0;
-	private native long newRecognizerNtv(long mCamMatrixAddr,long mDistMatrixAddr, int width, int height);
+	private native long newRecognizerNtv(int width, int height);
 	private native void delRecognizerNtv(long ptr);
-	private native Object remapFrameNtv(long ptr, long yuvAddr);
 	private native Object[] findTagsNtv(long ptr, long yuvAddr);
 	private native void notifySizeChangedNtv(long ptr, int width, int height, int rotation);
 	
 	
-	public Recognizer(Mat cameraMatrix, Mat distortionMatrix, int width, int height) {
-		if(cameraMatrix != null && distortionMatrix != null){
-			ptr = newRecognizerNtv(cameraMatrix.getNativeObjAddr(),distortionMatrix.getNativeObjAddr(),width,height);
-		}
+	public Recognizer(int width, int height) {
+		ptr = newRecognizerNtv(width,height);
 	}
 	@Override
 	protected void finalize() throws Throwable {
 		delRecognizerNtv(ptr);
 		super.finalize();
-	}
-	public Bitmap remapFrame(Mat yuvFrame){
-		Mat remapedMat = (Mat) remapFrameNtv(ptr, yuvFrame.getNativeObjAddr());
-		if(remapedMat != null){
-			return Misc.mat2Bitmap(remapedMat);
-		}else{
-			return null;
-		}
 	}
 	public void notifySizeChanged(Camera.Size size, int rotation){
 		Log.d(TAG,"rotation="+rotation);

@@ -4,7 +4,7 @@ using namespace cv;
 
 class Recognizer{
 private:
-	Mat cameraMat, distMat, map1, map2;
+	Mat  map1, map2;
 	bool processImages;
 	vector<Mat> tags;
 	int outline, normSize;
@@ -137,10 +137,8 @@ private:
 public:
 	Size imageSize;
 	int rotation;
-	Recognizer(Mat cameraMat, Mat distMat, Size imageSize){
+	Recognizer(Size imageSize){
 		this->outline = (imageSize.width + imageSize.height) * 2;
-		this->distMat = distMat;
-		this->cameraMat = cameraMat;
 		this->imageSize = imageSize;
 		this->blockSize = 45;
 		this->adaptThresh = 5.0;
@@ -247,28 +245,14 @@ public:
 		this->imageSize = newSize;
 		this->rotation = rotation;
 		this->outline = (imageSize.width + imageSize.height) / 2;
-		//this->cameraMat.at<double>(0,2,0) = this->cameraMat.at<double>(0,2,0) * scaleW;
-		//this->cameraMat.at<double>(1,2,0) = this->cameraMat.at<double>(1,2,0) * scaleH;
-		//this->cameraMat.at<double>(2,2,0) =  (scaleH/scaleW) * this->cameraMat.at<double>(2,2,0); // 3,3 camera matrix element is an aspect ratio
-
-		initUndistortRectifyMap(cameraMat,distMat,Mat(),cameraMat,imageSize,CV_32FC1,map1, map2);
-		convertMaps(this->map1,this->map2,this->map1,this->map2,CV_16SC2);
-		this->processImages = true;
-	}
-	void remap(Mat &rgbFrame){
-		if(processImages){
-			cv::remap(rgbFrame,rgbFrame, map1, map2, CV_INTER_LINEAR);
-		}
 	}
 
 
 };
 extern "C"{
 JNIEXPORT jlong JNICALL Java_com_richert_tagtracker_recognizer_Recognizer_newRecognizerNtv(JNIEnv* env, jobject\
-		, jlong cameraMatAddr, jlong distortionMatAddr, jint width, jint height){
-    Mat& cameraMat = *(Mat*)cameraMatAddr;
-    Mat& distortionMat = *(Mat*)distortionMatAddr;
-    Recognizer*recognizer = new Recognizer(cameraMat,distortionMat, Size(width,height));
+		, jint width, jint height){
+    Recognizer*recognizer = new Recognizer(Size(width,height));
 	return (jlong)recognizer;
 }
 JNIEXPORT void JNICALL Java_com_richert_tagtracker_recognizer_Recognizer_delRecognizerNtv(JNIEnv* env, jobject\
@@ -276,23 +260,6 @@ JNIEXPORT void JNICALL Java_com_richert_tagtracker_recognizer_Recognizer_delReco
 	if(calibratorAddr != 0){
 		Recognizer*recognizer = (Recognizer*)calibratorAddr;
 		delete recognizer;
-	}
-}
-JNIEXPORT jobject JNICALL Java_com_richert_tagtracker_recognizer_Recognizer_remapFrameNtv(JNIEnv* env, jobject\
-		,jlong recognizerAddr,jlong addrYuv, jint rotation){
-    Mat& mYuv = *(Mat*)addrYuv;
-	if(recognizerAddr != 0){
-		Recognizer*recognizer = (Recognizer*)recognizerAddr;
-		Mat mRGB(mYuv.rows,mYuv.cols,CV_8UC3);
-		cvtColor(mYuv,mRGB,COLOR_YUV2RGB_NV21);
-		recognizer->remap(mRGB);
-		jobject result = env->NewObject(jMatCls,jMatConsID);
-		Mat&cMat=*(Mat*)env->CallLongMethod(result,jMatGetNatAddr);
-		rotateMat(mRGB,rotation);
-		cMat = mRGB;
-		return result;
-	}else{
-		return NULL;
 	}
 }
 JNIEXPORT jobjectArray JNICALL Java_com_richert_tagtracker_recognizer_Recognizer_findTagsNtv(JNIEnv* env, jobject\

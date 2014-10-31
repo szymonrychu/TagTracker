@@ -28,6 +28,12 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
     private int bufferSize = 3;
     private UsbManager usbManager;
     private Context context;
+	private Boolean sending = false;
+	private int steerMax = 240;
+	private int steerMin = 115;
+    private float prevX;
+    private float prevY;
+    private String buffer = "";
     public DriverHelper(Context context, UsbManager usbManager){
     	this.context = context;
     	this.usbManager = usbManager;
@@ -38,6 +44,47 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
     }
     public void unregisterReceiver(){
     	context.unregisterReceiver(this);
+    }
+    public void steer(final float procX, final float procY){
+    	if((prevX != procX || prevY != procY)
+    			&& usbConnection!=null && outEndpoint != null
+    			&& buffer != null && !sending){
+    		Thread th = new Thread(){
+				@Override
+				public void run() {
+					sending = true;
+					prevX = procX;
+					prevY = procY;
+					int steer, lFront, lBack, rFront, rBack;
+					int steerCenter = (steerMax - steerMin)/2 + steerMin;
+					steer = steerCenter + (int)(procX*((steerMax - steerMin)/2));
+			
+					lBack = procY > 0 ? procX > 0 ? (int)(procY*255) : Math.max((int)(procY*255)+(int)(procX*50),0) : 0;//leftT
+					lFront = procY < 0 ? procX > 0 ? -(int)(procY*255) : Math.max(-(int)(procY*255)+(int)(procX*50),0) : 0;//leftP
+					rBack = procY > 0 ? procX < 0 ? (int)(procY*255) : Math.max((int)(procY*255)-(int)(procX*50),0) : 0;//rightT
+					rFront = procY < 0 ? procX < 0 ? -(int)(procY*255) : Math.max(-(int)(procY*255)-(int)(procX*50),0) : 0;//rightP
+					/*
+					lBack = procY < 0 ? -(int)(procY*255) : 0;
+					rFront = procY > 0 ? (int)(procY*255) : 0;
+					rBack = procY < 0 ? -(int)(procY*255) : 0;*/
+					
+					
+
+					buffer = ""+steer+","+lFront+","+lBack+","+rFront+","+rBack+",";
+					usbConnection.bulkTransfer(outEndpoint, buffer.getBytes(), buffer.getBytes().length, timeoutMs);
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					sending=false;
+					super.run();
+				}
+			};
+			th.start();
+			
+    	}
     }
     @Override
 	public void onReceive(Context context, Intent intent) {
@@ -153,8 +200,7 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
 			}
 		}
 	}
-	private Boolean sending = false;
-	public void send(final byte[] buffer){
+	/*public void send(final byte[] buffer){
 		if(usbConnection!=null && outEndpoint != null && buffer != null && !sending){
 			Thread th = new Thread(){
 				@Override
@@ -173,7 +219,7 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
 			};
 			th.start();
 		}
-	}
+	}*/
 	protected void receive(byte[] buffer){
 		if(usbConnection!=null && inEndpoint != null){
 			usbConnection.bulkTransfer(inEndpoint, buffer, buffer.length, timeoutMs);

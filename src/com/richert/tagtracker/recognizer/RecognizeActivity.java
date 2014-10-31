@@ -61,12 +61,9 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private Camera.Parameters params = null;
 	private Recognizer recognizer;
 	private OfflineDataHelper helper;
-	private Bitmap tmp;
 	private int rotation=0;
 	private int camWidth, camHeight;
 	private int viewWidth, viewHeight;
-	private Mat cameraMatrix, distortionMatrix;
-	private Boolean showPreview = false;
 	private Tag[] tags;
 	private Paint greenPaint;
 	private Paint redPaint;
@@ -99,8 +96,6 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 				helper.saveScreenshot(bmp, "screenshot-"+date+".png");
 			}
 		});
-		cameraMatrix = helper.loadCameraMatrix();
-		distortionMatrix = helper.loadDistortionMatrix();
 		greenPaint = new Paint();
 		greenPaint.setAntiAlias(true);
 		greenPaint.setColor(Color.GREEN);
@@ -188,100 +183,33 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	}
 	@Override
 	public void processImage(Mat yuvFrame, Thread thiz) {
-		// TODO Auto-generated method stub
-		if(showPreview){
-			tmp = recognizer.remapFrame(yuvFrame);
-		}
 		tags = recognizer.findTags(yuvFrame, rotation);
 		preview.requestRefresh();
 	}
-	Boolean transmiting = false;
 	float XX=0;
-	Boolean flag = false;
 
-	@Override
-	public void drawOnCamera(Canvas canvas, double scaleX, double scaleY) {
-		boolean[] newTagMap = new boolean[32];
-		for(boolean t : newTagMap){
-			t = false;
+	private static int previewX=0;
+	private static int previewY=0;
+	private static float X=0;
+	private static float Y=0;
+	private float drawTag(Tag tag, Canvas canvas, Paint paint){
+		X = Y = 0;
+		for(int c=0;c<4;c++){
+			float x1 = tag.points[c].x*viewWidth;
+			float y1 = tag.points[c].y*viewHeight;
+			float x2 = tag.points[(c+1)%4].x*viewWidth;
+			float y2 = tag.points[(c+1)%4].y*viewHeight;
+			canvas.drawLine(x1, y1, x2, y2, paint);
+			X+=x1;
+			Y+=y1;
 		}
-		if(showPreview){
-			canvas.drawBitmap(tmp,0, 0, new Paint());
-		}
-		if(tags!=null){
-			int previewX=0;
-			int previewY=0;
-			for(Tag tag : tags){
-				float X=0;
-				float Y=0;
-				newTagMap[tag.id]=true;
-				if(tag.id == trackedID){
-					for(int c=0;c<4;c++){
-						float x1 = tag.points[c].x*viewWidth;
-						float y1 = tag.points[c].y*viewHeight;
-						float x2 = tag.points[(c+1)%4].x*viewWidth;
-						float y2 = tag.points[(c+1)%4].y*viewHeight;
-						canvas.drawLine(x1, y1, x2, y2, greenPaint);
-						X+=x1;
-						Y+=y1;
-						
-					}
-					flag = true;
-					canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), previewX, previewY , greenPaint);
-					canvas.drawText(""+tag.id, X/4, Y/4, greenPaint);
-					
-					
-					
-					final float lastX =((float)X/4);
-					if(XX != lastX){
-						if(!transmiting){
-							transmiting = true;
-							new Thread(){
-								public void run() {
-									steer((float)(3*(lastX-0.5f)),-1.0f);
-									XX=lastX;
-									transmiting = false;
-								};
-							}.run();
-						}
-					}
-				}else{
-					for(int c=0;c<4;c++){
-						float x1 = tag.points[c].x*viewWidth;
-						float y1 = tag.points[c].y*viewHeight;
-						float x2 = tag.points[(c+1)%4].x*viewWidth;
-						float y2 = tag.points[(c+1)%4].y*viewHeight;
-						canvas.drawLine(x1, y1, x2, y2, redPaint);
-						X+=x1;
-						Y+=y1;
-						
-					}
-					flag = true;
-					canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), previewX, previewY , redPaint);
-					canvas.drawText(""+tag.id, X/4, Y/4, redPaint);
-
-					
-				}
-				previewX+=tag.preview.cols();
-			}
-			
-		}else{
-			if(XX != 0){
-				if(!transmiting){
-					transmiting = true;
-					new Thread(){
-						public void run() {
-							steer(0,0);
-							XX=0;
-							transmiting = false;
-						};
-					}.run();
-				}
-			}
-		}
-		
-		
-		
+		canvas.drawText(""+tag.id, X/4, Y/4, paint);
+		return X/4;
+	}
+	private void drawTagPreview(Tag tag, Canvas canvas,  Paint paint){
+		canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), previewX, previewY , redPaint);
+	}
+	private void askIfChanged(final boolean[] newTagMap){
 		Boolean diff = false;
 		for(int c = 0;c<32 && !diff; c++){
 			diff = tagMap[c] != newTagMap[c];
@@ -296,39 +224,57 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 				for(int c = 0;c<32 && !notSeeAnyTag; c++){
 					notSeeAnyTag = newTagMap[c];
 				}
+				Handler h = new Handler(mainLooper);
 				if(notSeeAnyTag){
-					asked = false;
-					Handler h = new Handler(mainLooper);
 					h.post(new Runnable() {
-						
 						@Override
 						public void run() {
-							if(asked != true){
-								asked = true;
-								ttstt.speak(WHAT_TAG_FOLLOW);
-							}
+							ttstt.speak(WHAT_TAG_FOLLOW);
 						}
 					});
 				}else{
-					asked = false;
-					Handler h = new Handler(mainLooper);
 					h.post(new Runnable() {
-						
 						@Override
 						public void run() {
-							if(asked != true){
-								asked = true;
-								ttstt.speak(DONT_SEE_TAGZ);
-							}
+							ttstt.speak(DONT_SEE_TAGZ);
 						}
 					});
-					
 				}
-				
 			}
 		}else{
-			confidenceCounter =0;
+			confidenceCounter = 0;
 		}
+	}
+	@Override
+	public void drawOnCamera(Canvas canvas, double scaleX, double scaleY) {
+		boolean[] newTagMap = new boolean[32];
+		for(boolean t : newTagMap){
+			t = false;
+		}
+		if(tags!=null){
+			previewX = previewY = 0;
+			for(Tag tag : tags){
+				newTagMap[tag.id]=true;
+				if(tag.id == trackedID){
+					float steerX = drawTag(tag, canvas, greenPaint)/viewWidth;
+					drawTagPreview(tag, canvas, greenPaint);
+					driverHelper.steer((float)(3*(steerX-0.5f)),-1.0f);
+					
+				}else{
+					drawTag(tag, canvas, redPaint);
+					drawTagPreview(tag, canvas, redPaint);
+					driverHelper.steer(0,0);
+				}
+				previewX+=tag.preview.cols();
+			}
+			
+		}else{
+			driverHelper.steer(0,0);
+		}
+		
+		askIfChanged(newTagMap);
+		
+		
 	}
 	@Override
 	public void setCameraParameters(Parameters params, int width, int height, int rotation) {
@@ -344,7 +290,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		camWidth = helper.getResolutionWidth(params.getPreviewSize().width);
 		camHeight = helper.getResolutionHeight(params.getPreviewSize().height);
 		params.setPreviewSize(camWidth, camHeight);
-		recognizer = new Recognizer(cameraMatrix,distortionMatrix, width, height);
+		recognizer = new Recognizer(width, height);
 		recognizer.notifySizeChanged(params.getPreviewSize(), rotation);
 		
 	}
@@ -352,24 +298,6 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	public void getPointers(SparseArray<Pointer> pointers) {
 		// TODO Auto-generated method stub
 		
-	}
-	String sent="";
-	int steerMax = 240;
-	int steerMin = 115;
-	public void steer(float procX, float procY){
-		int steer, lFront, lBack, rFront, rBack;
-		int steerCenter = (steerMax - steerMin)/2 + steerMin;
-		steer = steerCenter - (int)(procX*((steerMax + steerMin)/2));
-
-		lBack = Math.min(procY > 0 ? procX > 0 ? (int)(procY*255) : Math.max((int)(procY*255)+(int)(procX*50),0) : 0, 255);//leftT
-		lFront = Math.min(procY < 0 ? procX > 0 ? -(int)(procY*255) : Math.max(-(int)(procY*255)+(int)(procX*50),0) : 0, 255);//leftP
-		rBack = Math.min(procY > 0 ? procX < 0 ? (int)(procY*255) : Math.max((int)(procY*255)-(int)(procX*50),0) : 0, 255);//rightT
-		rFront = Math.min(procY < 0 ? procX < 0 ? -(int)(procY*255) : Math.max(-(int)(procY*255)-(int)(procX*50),0) : 0, 255);//rightP
-		
-		
-		
-		sent = ""+steer+","+lFront+","+lBack+","+rFront+","+rBack+",";
-		driverHelper.send(sent.getBytes());
 	}
 
 	
@@ -381,10 +309,10 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	public void onRecognitionResult(String result, float confidence) {
 		Log.v(TAG,"onRecognitionResult:"+result+":"+confidence);
 		if(confidence < 0.5){
-			ttstt.recognizeText();
+        	ttstt.speak(WHAT_TAG_FOLLOW);
 		}else{
-	        Log.v(TAG,"response:"+result+":id:"+trackedID);
 	        trackedID = ttstt.stringToInt(result);
+	        Log.v(TAG,"response:"+result+":id:"+trackedID);
 	        if(trackedID < 1){
 	        	ttstt.speak(WHAT_TAG_FOLLOW);
 	        }else{

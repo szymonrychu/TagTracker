@@ -47,6 +47,10 @@ public class CalibrateActivity  extends FullScreenActivity implements CameraSetu
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
+		/*
+		cameraMatrix = helper.loadCameraMatrix();
+		distortionMatrix = helper.loadDistortionMatrix();
+		 */
 		setContentView(R.layout.activity_calibrate);
 		preview = (CameraDrawerPreview) findViewById(R.id.calibrate_preview);
 		preview.setCameraProcessingCallback(this);
