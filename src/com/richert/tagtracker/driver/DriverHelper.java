@@ -30,6 +30,7 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
     private Context context;
     public DriverHelper(Context context, UsbManager usbManager){
     	this.context = context;
+    	this.usbManager = usbManager;
     	IntentFilter filter = new IntentFilter();
     	filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
     	context.registerReceiver(this, filter);
@@ -42,18 +43,22 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
 	public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) { 
-        	transreceive = false;
-        	try {
-        		if(worker != null){
-    				worker.join();
-        		}
-			} catch (InterruptedException e) {
-			}
+        	transreceive = findDevice(usbManager);
+        	if(!transreceive){
+		    	try {
+		    		if(worker != null){
+						worker.join();
+		    		}
+				} catch (InterruptedException e) {
+				}
+        	}
         }else if(UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)){
         	if(!transreceive){
             	transreceive = findDevice(usbManager);
-            	worker = new Thread(this);
-            	worker.start();
+            	if(transreceive){
+		        	worker = new Thread(this);
+		        	worker.start();
+            	}
         	}
         }
         

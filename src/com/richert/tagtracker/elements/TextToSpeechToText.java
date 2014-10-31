@@ -8,30 +8,143 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
+import android.sax.TextElementListener;
+import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.TextToSpeech.OnInitListener;
+import android.util.Log;
 import android.widget.Toast;
 
 public class TextToSpeechToText {
+	public interface SpeechToTextListener{
+		public void onPartialRecognitionResult(String result, float confidence);
+		public void onRecognitionResult(String result, float confidence);
+		public void onDoneTalking(String text);
+	}
+	private static final String TAG = TextToSpeechToText.class.getSimpleName();
+	private SpeechToTextListener speechToTextListener;
 	private Context context;
 	private TextToSpeech tts;
-	public Boolean isSpeaking = false;
-	public Boolean isWaiting = false;
+	private SpeechRecognizer recognizer;
+	public String recognitionResult = null;
+	private Runnable onUIThread = new Runnable() {
+        @Override
+        public void run() {
+        	if(SpeechRecognizer.isRecognitionAvailable(context) && speakAndRecognize){
+        		recognizer = SpeechRecognizer.createSpeechRecognizer(context);
+        		recognizer.setRecognitionListener(new RecognitionListener() {
+					
+					@Override
+					public void onRmsChanged(float rmsdB) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void onResults(Bundle results) {
+						if(!speakAndRecognize){
+							return;
+						}
+						recognitionResult = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0);
+						Log.v(TAG,recognitionResult);
+						float[] confidence = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
+						// TODO Auto-generated method stub
+						speechToTextListener.onRecognitionResult(recognitionResult, confidence[0]);
+					}
+					
+					@Override
+					public void onReadyForSpeech(Bundle params) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void onPartialResults(Bundle partialResults) {
+						if(!speakAndRecognize){
+							return;
+						}
+						recognitionResult = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION).get(0);
+						Log.v(TAG,recognitionResult);
+						float[] confidence = partialResults.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
+						// TODO Auto-generated method stub
+						speechToTextListener.onPartialRecognitionResult(recognitionResult, confidence[0]);
+					}
+					
+					@Override
+					public void onEvent(int eventType, Bundle params) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void onError(int error) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void onEndOfSpeech() {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void onBufferReceived(byte[] buffer) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void onBeginningOfSpeech() {
+						// TODO Auto-generated method stub
+						
+					}
+				});
+        		if(speakAndRecognize){
+					Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+			        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
+	        		recognizer.startListening(intent);
+        		}
+        	}
+           //Your code to run in GUI thread here
+        }//public void run() {
+	};
+	
+	
+	
 	public TextToSpeechToText(Context context){
 		this.context = context;
 	}
-	public String getResponse(int requestCode, int resultCode, Intent data, int uniqueID){
-		String result = null;
-		if(requestCode == uniqueID && resultCode == Activity.RESULT_OK){
-			ArrayList<String> text = data
-                    .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-			result = text.get(0);
-			isWaiting = false;
+	private Boolean speakAndRecognize;
+	public void setSpeechToTextListener(SpeechToTextListener listener){
+		speechToTextListener = listener;
+		speakAndRecognize = true;
+	}
+	public void onPause(){
+		speakAndRecognize = false;
+		if(recognizer != null){
+			recognizer.stopListening();
+			recognizer.destroy();
 		}
-		return result;
-		
+		if(tts != null){
+			tts.stop();
+			tts.shutdown();
+		}
+	}
+	public String recognizeText(){
+		if(speechToTextListener == null){
+			return null;
+		}
+		if(!speakAndRecognize){
+			return null;
+		}
+		recognitionResult = null;
+		((Activity) context).runOnUiThread(onUIThread);
+		return recognitionResult;
 	}
 	public int stringToInt(String response){
 		try{
@@ -110,102 +223,52 @@ public class TextToSpeechToText {
 			return -2;
 		}
 	}
-	public void ask(final String text, final int uniqueID){
-		if(isSpeaking != true && isWaiting!= true){
-			isWaiting = true;
-			isSpeaking = true;
-			tts = new TextToSpeech(context, new OnInitListener() {
-				@Override
-				public void onInit(int status) {
-					if(status == TextToSpeech.ERROR){
-			            Toast t = Toast.makeText(context, "Opps! Your device doesn't support Text to Speech", Toast.LENGTH_SHORT);
-			            t.show();
-					}else{
-						tts.setLanguage(Locale.US);
-						tts.setOnUtteranceProgressListener(new UtteranceProgressListener(){
-							@Override
-							public void onStart(String utteranceId) {
-							}
+	public void speak(final String text){
+		if(speechToTextListener == null || !speakAndRecognize){
+			return;
+		}
+		tts = new TextToSpeech(context, new OnInitListener() {
+			@Override
+			public void onInit(int status) {
+				if(status != TextToSpeech.ERROR){
+					tts.setLanguage(Locale.US);
+					tts.setOnUtteranceProgressListener(new UtteranceProgressListener(){
+						@Override
+						public void onStart(String utteranceId) {
+						}
 	
-							@Override
-							public void onDone(String utteranceId) {
-								Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-						        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
-								if(tts != null){
-									tts.shutdown();
-									tts = null;
-									isSpeaking = false;
-								}
-						        try {
-						            ((Activity) context).startActivityForResult(intent, uniqueID);
-						        } catch (ActivityNotFoundException a) {
-						            Toast t = Toast.makeText(context,
-						                    "Opps! Your device doesn't support Speech to Text",
-						                    Toast.LENGTH_SHORT);
-						            t.show();
-						        }
+						@Override
+						public void onDone(String utteranceId) {
+							if(tts != null){
+								tts.shutdown();
+								tts = null;
 							}
-	
-							@Override
-							public void onError(String utteranceId) {
-								if(tts != null){
-									tts.shutdown();
-									tts = null;
-									isSpeaking = false;
-								}
-							}
+							speechToTextListener.onDoneTalking(text);
 							
-						});
-						tts.speak(text,TextToSpeech.QUEUE_FLUSH,null,String.valueOf(System.currentTimeMillis()));
-					}
+						}
+	
+						@Override
+						public void onError(String utteranceId) {
+							if(tts != null){
+								tts.shutdown();
+								tts = null;
+							}
+							speechToTextListener.onDoneTalking(text);
+						}
+						
+					});
+	        		if(speakAndRecognize){
+	        			tts.speak(text,TextToSpeech.QUEUE_FLUSH,null,String.valueOf(System.currentTimeMillis()));
+	        		}
+				}else{
+		            Toast t = Toast.makeText(context,
+		                    "Opps! Your device doesn't support Text to Speech",
+		                    Toast.LENGTH_SHORT);
+		            t.show();
 					
 				}
-			});
-		}
-	}
-	public void speak(final String text){
-		if(isSpeaking != true){
-			isSpeaking = true;
-			tts = new TextToSpeech(context, new OnInitListener() {
-				@Override
-				public void onInit(int status) {
-					if(status != TextToSpeech.ERROR){
-						tts.setLanguage(Locale.US);
-						tts.setOnUtteranceProgressListener(new UtteranceProgressListener(){
-							@Override
-							public void onStart(String utteranceId) {
-							}
-		
-							@Override
-							public void onDone(String utteranceId) {
-								if(tts != null){
-									tts.shutdown();
-									tts = null;
-									isSpeaking = false;
-								}
-							}
-		
-							@Override
-							public void onError(String utteranceId) {
-								if(tts != null){
-									tts.shutdown();
-									tts = null;
-									isSpeaking = false;
-								}
-							}
-							
-						});
-						tts.speak(text,TextToSpeech.QUEUE_FLUSH,null,String.valueOf(System.currentTimeMillis()));
-					}else{
-			            Toast t = Toast.makeText(context,
-			                    "Opps! Your device doesn't support Text to Speech",
-			                    Toast.LENGTH_SHORT);
-			            t.show();
-						
-					}
-				}
-			});
-		}
+			}
+		});
 		
 	}
 }

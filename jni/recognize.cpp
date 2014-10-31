@@ -319,6 +319,7 @@ JNIEXPORT void JNICALL Java_com_richert_tagtracker_recognizer_Recognizer_notifyS
 	if(recognizerAddr != 0){
 		Recognizer*recognizer = (Recognizer*)recognizerAddr;
 		Size size(width,height);
+		logD("Java_com_richert_tagtracker_recognizer_Recognizer_notifySizeChangedNtv","w:%d:h:%d:r:%d",width,height,rotation);
 		recognizer->notifyImageSizeChanged(size, rotation);
 	}
 }

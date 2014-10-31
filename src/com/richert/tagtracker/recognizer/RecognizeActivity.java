@@ -24,6 +24,7 @@ import com.richert.tagtracker.elements.ResolutionDialog;
 import com.richert.tagtracker.elements.CameraDrawerPreview.CameraProcessingCallback;
 import com.richert.tagtracker.elements.CameraDrawerPreview.CameraSetupCallback;
 import com.richert.tagtracker.elements.TextToSpeechToText;
+import com.richert.tagtracker.elements.TextToSpeechToText.SpeechToTextListener;
 import com.richert.tagtracker.geomerty.Tag;
 import com.richert.tagtracker.markergen.MarkerGeneratorActivity;
 import com.richert.tagtracker.natUtils.Misc;
@@ -40,8 +41,11 @@ import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,7 +54,7 @@ import android.view.View.OnClickListener;
 import android.view.animation.RotateAnimation;
 import android.widget.Button;
 
-public class RecognizeActivity extends FullScreenActivity implements CameraSetupCallback, CameraProcessingCallback{
+public class RecognizeActivity extends FullScreenActivity implements CameraSetupCallback, CameraProcessingCallback, SpeechToTextListener{
 	private final static String TAG=RecognizeActivity.class.getSimpleName();
 	private static final int ID = RecognizeActivity.class.hashCode();
 	private CameraDrawerPreview preview = null;
@@ -67,10 +71,17 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private Paint greenPaint;
 	private Paint redPaint;
 	private DriverHelper driverHelper;
-	public int trackedID = 1;
+	public int trackedID = -1;
 	private TextToSpeechToText ttstt;
 	private Boolean asked = false;
 	private Thread askingThread;
+	private Looper mainLooper;
+	private boolean[] tagMap = new boolean[32];
+	private int confidenceCounter = 0;
+	private final static String WHAT_TAG_FOLLOW = "what tag number should I follow?";
+	private final static String DONT_SEE_TAGZ = "I don't see any tags, stopping!";
+	private final static String FOLLOWING_ = "Following tag number: ";
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_recognize);
@@ -102,6 +113,11 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		redPaint.setTextSize(25.0f);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		ttstt = new TextToSpeechToText(this);
+		ttstt.setSpeechToTextListener(this);
+		mainLooper = this.getMainLooper();
+		for(boolean t : tagMap){
+			t = false;
+		}
 		super.onCreate(savedInstanceState);
 	}
 	@Override
@@ -109,7 +125,14 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
 		if(asked != true){
 			asked = true;
-			ttstt.ask("what tag number should I follow?",ID);
+			Handler h = new Handler(mainLooper);
+			h.post(new Runnable() {
+				
+				@Override
+				public void run() {
+					ttstt.speak(WHAT_TAG_FOLLOW);
+				}
+			});
 		}
 		super.onResume();
 	}
@@ -118,6 +141,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		if(driverHelper != null){
 			driverHelper.unregisterReceiver();
 		}
+		ttstt.onPause();
 		super.onPause();
 	}
 	@Override
@@ -137,6 +161,10 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 					params.setPreviewSize(size.width, size.height);
 					maxW = size.width;
 					preview.reloadCameraSetup(params);
+					//TODO workaround - need further investigation
+					WindowManager manager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+					Display display = (manager).getDefaultDisplay();
+					rotation = display.getRotation();
 					recognizer.notifySizeChanged(size, rotation);
 					helper.setResolution(size);
 				}
@@ -173,40 +201,44 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 
 	@Override
 	public void drawOnCamera(Canvas canvas, double scaleX, double scaleY) {
+		boolean[] newTagMap = new boolean[32];
+		for(boolean t : newTagMap){
+			t = false;
+		}
 		if(showPreview){
 			canvas.drawBitmap(tmp,0, 0, new Paint());
 		}
 		if(tags!=null){
-			int x=0;
-			int y=0;
+			int previewX=0;
+			int previewY=0;
 			for(Tag tag : tags){
 				float X=0;
 				float Y=0;
-				
+				newTagMap[tag.id]=true;
 				if(tag.id == trackedID){
 					for(int c=0;c<4;c++){
-						canvas.drawLine(tag.points[c].x*viewWidth, tag.points[c].y*viewHeight, tag.points[(c+1)%4].x*viewWidth, tag.points[(c+1)%4].y*viewHeight, greenPaint);
-						X+=tag.points[c].x;
-						Y+=tag.points[c].y;
+						float x1 = tag.points[c].x*viewWidth;
+						float y1 = tag.points[c].y*viewHeight;
+						float x2 = tag.points[(c+1)%4].x*viewWidth;
+						float y2 = tag.points[(c+1)%4].y*viewHeight;
+						canvas.drawLine(x1, y1, x2, y2, greenPaint);
+						X+=x1;
+						Y+=y1;
 						
 					}
 					flag = true;
-					canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), x, y , greenPaint);
-					canvas.drawText(""+tag.id, (X*camWidth)/4, (Y*camHeight)/4, greenPaint);
+					canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), previewX, previewY , greenPaint);
+					canvas.drawText(""+tag.id, X/4, Y/4, greenPaint);
 					
 					
 					
 					final float lastX =((float)X/4);
-					Log.d(TAG,"blah"+(float)(2*(lastX-0.5f)));
-					Log.d(TAG,"w"+viewWidth);
-					Log.d(TAG,"h"+viewHeight);
 					if(XX != lastX){
 						if(!transmiting){
 							transmiting = true;
 							new Thread(){
 								public void run() {
 									steer((float)(3*(lastX-0.5f)),-1.0f);
-									Log.d(TAG,"blah"+(float)(3*(lastX-0.5f)));
 									XX=lastX;
 									transmiting = false;
 								};
@@ -215,27 +247,22 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 					}
 				}else{
 					for(int c=0;c<4;c++){
-						canvas.drawLine(tag.points[c].x*viewWidth, tag.points[c].y*viewHeight, tag.points[(c+1)%4].x*viewWidth, tag.points[(c+1)%4].y*viewHeight, redPaint);
-						X+=tag.points[c].x;
-						Y+=tag.points[c].y;
+						float x1 = tag.points[c].x*viewWidth;
+						float y1 = tag.points[c].y*viewHeight;
+						float x2 = tag.points[(c+1)%4].x*viewWidth;
+						float y2 = tag.points[(c+1)%4].y*viewHeight;
+						canvas.drawLine(x1, y1, x2, y2, redPaint);
+						X+=x1;
+						Y+=y1;
+						
 					}
 					flag = true;
-					canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), x, y , redPaint);
-					canvas.drawText(""+tag.id, (X*camWidth)/4, (Y*camHeight)/4, redPaint);
-					asked = false;
-					askingThread = new Thread(){
-						public void run() {
-							if(asked != true){
-								asked = true;
-								ttstt.ask("I see another tag, what tag number should I follow?",ID);
-							}
-						};
-					};
-					if(!askingThread.isAlive() && !ttstt.isSpeaking){
-						askingThread.start();
-					}
+					canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), previewX, previewY , redPaint);
+					canvas.drawText(""+tag.id, X/4, Y/4, redPaint);
+
+					
 				}
-				x+=tag.preview.cols();
+				previewX+=tag.preview.cols();
 			}
 			
 		}else{
@@ -251,6 +278,56 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 					}.run();
 				}
 			}
+		}
+		
+		
+		
+		Boolean diff = false;
+		for(int c = 0;c<32 && !diff; c++){
+			diff = tagMap[c] != newTagMap[c];
+		}
+		if(diff){
+			confidenceCounter++;
+			if(confidenceCounter>20){
+				confidenceCounter=0;
+				trackedID = -1;
+				tagMap = newTagMap;
+				Boolean notSeeAnyTag = false;
+				for(int c = 0;c<32 && !notSeeAnyTag; c++){
+					notSeeAnyTag = newTagMap[c];
+				}
+				if(notSeeAnyTag){
+					asked = false;
+					Handler h = new Handler(mainLooper);
+					h.post(new Runnable() {
+						
+						@Override
+						public void run() {
+							if(asked != true){
+								asked = true;
+								ttstt.speak(WHAT_TAG_FOLLOW);
+							}
+						}
+					});
+				}else{
+					asked = false;
+					Handler h = new Handler(mainLooper);
+					h.post(new Runnable() {
+						
+						@Override
+						public void run() {
+							if(asked != true){
+								asked = true;
+								ttstt.speak(DONT_SEE_TAGZ);
+							}
+						}
+					});
+					
+				}
+				
+			}
+		}else{
+			confidenceCounter =0;
 		}
 	}
 	@Override
@@ -295,24 +372,36 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		driverHelper.send(sent.getBytes());
 	}
 
+	
 	@Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        String response = ttstt.getResponse(requestCode, resultCode, data, ID);
-        Boolean flag = true;
-        if(response != null){
-	        Log.v(TAG,response);
-	        trackedID = ttstt.stringToInt(response);
-	        Log.v(TAG,""+trackedID);
-	        if(trackedID>0){
-	        	ttstt.speak("following tag: "+trackedID);
-	        	flag = false;
+	public void onPartialRecognitionResult(String result, float confidence) {
+		Log.v(TAG,"onPartialRecognitionResult:"+result+":"+confidence);
+	}
+	@Override
+	public void onRecognitionResult(String result, float confidence) {
+		Log.v(TAG,"onRecognitionResult:"+result+":"+confidence);
+		if(confidence < 0.5){
+			ttstt.recognizeText();
+		}else{
+	        Log.v(TAG,"response:"+result+":id:"+trackedID);
+	        trackedID = ttstt.stringToInt(result);
+	        if(trackedID < 1){
+	        	ttstt.speak(WHAT_TAG_FOLLOW);
 	        }else{
-	        	
+	        	ttstt.speak(FOLLOWING_+trackedID);
 	        }
-        }
-        if(flag){
-			ttstt.ask("what tag number should I follow?",ID);
-        }
-    }
+		}
+	}
+	@Override
+	public void onDoneTalking(String text) {
+		if(text.contentEquals(FOLLOWING_+trackedID)){
+
+		}else if(text.contentEquals(DONT_SEE_TAGZ)){
+			
+		}else if(text.contentEquals(WHAT_TAG_FOLLOW)){
+			ttstt.recognizeText();
+		}
+		// TODO Auto-generated method stub
+		
+	}
 }

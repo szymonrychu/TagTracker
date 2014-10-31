@@ -9,6 +9,7 @@ import com.richert.tagtracker.elements.AboutActivity;
 import com.richert.tagtracker.elements.LicencesActivity;
 import com.richert.tagtracker.elements.LogcatActivity;
 import com.richert.tagtracker.elements.TextToSpeechToText;
+import com.richert.tagtracker.elements.TextToSpeechToText.SpeechToTextListener;
 import com.richert.tagtracker.markergen.MarkerGeneratorActivity;
 import com.richert.tagtracker.recognizer.RecognizeActivity;
 
@@ -17,6 +18,8 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.usb.UsbAccessory;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.RecognizerIntent;
@@ -34,9 +37,11 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements Runnable {
+public class MainActivity extends Activity implements Runnable, SpeechToTextListener {
 	private static final String TAG = MainActivity.class.getSimpleName();
 	private static final int ID = MainActivity.class.hashCode();
+	public final static String INTRO = "Make your selection - pick number! First: Calibrate your camera. Second: Recognize the tags. Third: Drive the motors, Fourth: Generate the tags.";
+	public final static String REPEAT = "I didn't catch that. Please repeat.";
 	private Button calibrateButton = null;
 	private Button recognizeButton = null;
 	private Button generateButton = null;
@@ -53,7 +58,7 @@ public class MainActivity extends Activity implements Runnable {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		asked = false;
-		//TODO
+		String action = getIntent().getAction();
 		setContentView(R.layout.activity_main);
 		calibrateButton = (Button) findViewById(R.id.butt_main_calibrate);
 		calibrateButton.setOnClickListener(new OnClickListener() {
@@ -94,8 +99,11 @@ public class MainActivity extends Activity implements Runnable {
 		progressBar = (ProgressBar) findViewById(R.id.progressBar_main);
 		progressBar.setMax(1000);
 		progressBar.setProgress(0);
-		
-		if(asked != true){
+
+		//Intent.ACTION_MAIN
+		//UsbManager.ACTION_USB_DEVICE_ATTACHED
+		if(asked != true && action == UsbManager.ACTION_USB_DEVICE_ATTACHED){
+			asked = true;
 			Handler handler = new Handler();
 			handler.postDelayed(this,timeMillis);
 			progressBar.setProgress(0);
@@ -111,7 +119,13 @@ public class MainActivity extends Activity implements Runnable {
 	@Override
 	protected void onResume() {
 		ttstt = new TextToSpeechToText(this);
+		ttstt.setSpeechToTextListener(this);
 		super.onResume();
+	}
+	@Override
+	protected void onPause() {
+		ttstt.onPause();
+		super.onPause();
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -146,33 +160,44 @@ public class MainActivity extends Activity implements Runnable {
 	@Override
 	public void run() {
         progressBar.setVisibility(View.INVISIBLE);
-		if(asked != true){
-			asked = true;
-			ttstt.ask("Make your selection - pick number! First: Calibrate your camera. Second: Recognize the tags. Third: Drive the motors, Fourth: Generate the tags.", ID);
-		}
+		ttstt.speak(INTRO);
 	}
 	
 	@Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        String response = ttstt.getResponse(requestCode, resultCode, data, ID);
-        if(response.contains("one") || response.contains("first") || response.contains("calibrate")){
-            ttstt.speak("Starting camera calibration module.");
-			Intent calibrate = new Intent(context,CalibrateActivity.class);
-			startActivity(calibrate);
-        }else if(response.contains("two") || response.contains("second") || response.contains("recognize")){
-			Intent recognize = new Intent(context,RecognizeActivity.class);
-			startActivity(recognize);
-        }else if(response.contains("three") || response.contains("third") || response.contains("drive")){
-            ttstt.speak("Starting driver module");
-			Intent drive = new Intent(context,DriverActivity.class);
-			startActivity(drive);
-        }else if(response.contains("four") || response.contains("fourth") || response.contains("generate")){
-            ttstt.speak("Starting generator module");
-			Intent generate = new Intent(context,MarkerGeneratorActivity.class);
-			startActivity(generate);
-        }else{
-    		ttstt.ask("Make your selection - pick number! First: Calibrate your camera. Second: Recognize the tags. Third: Drive the motors, Fourth: Generate the tags.", ID);
-        }
-    }
+	public void onPartialRecognitionResult(String result, float confidence) {
+		Log.v(TAG,"onPartialRecognitionResult:"+result+":"+confidence);
+	}
+	@Override
+	public void onRecognitionResult(String response, float confidence) {
+		Log.v(TAG,"onRecognitionResult:"+response+":"+confidence);
+		if(confidence < 0.5){
+			ttstt.recognizeText();
+		}else{
+
+	        if(response.contains("one") || response.contains("first") || response.contains("calibrate")){
+	            ttstt.speak("Starting camera calibration module.");
+				Intent calibrate = new Intent(context,CalibrateActivity.class);
+				startActivity(calibrate);
+	        }else if(response.contains("two") || response.contains("second") || response.contains("recognize")){
+				Intent recognize = new Intent(context,RecognizeActivity.class);
+				startActivity(recognize);
+	        }else if(response.contains("three") || response.contains("third") || response.contains("drive")){
+	            ttstt.speak("Starting driver module");
+				Intent drive = new Intent(context,DriverActivity.class);
+				startActivity(drive);
+	        }else if(response.contains("four") || response.contains("fourth") || response.contains("generate")){
+	            ttstt.speak("Starting generator module");
+				Intent generate = new Intent(context,MarkerGeneratorActivity.class);
+				startActivity(generate);
+	        }else{
+	    		ttstt.speak(INTRO);
+	        }
+		}
+	}
+	@Override
+	public void onDoneTalking(String text) {
+		if(text.contentEquals(INTRO)){
+			ttstt.recognizeText();
+		}
+	}
 }

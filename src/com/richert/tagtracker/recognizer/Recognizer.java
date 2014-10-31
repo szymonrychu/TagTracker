@@ -22,7 +22,6 @@ public class Recognizer {
 	}
 	private final static String TAG = Recognizer.class.getSimpleName();
 	private long ptr = 0;
-	private int rotation;
 	private native long newRecognizerNtv(long mCamMatrixAddr,long mDistMatrixAddr, int width, int height);
 	private native void delRecognizerNtv(long ptr);
 	private native Object remapFrameNtv(long ptr, long yuvAddr);
@@ -49,7 +48,6 @@ public class Recognizer {
 		}
 	}
 	public void notifySizeChanged(Camera.Size size, int rotation){
-		this.rotation = rotation;
 		Log.d(TAG,"rotation="+rotation);
 		notifySizeChangedNtv(ptr, size.width, size.height, rotation);
 	}
