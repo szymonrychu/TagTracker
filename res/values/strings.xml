@@ -27,5 +27,6 @@
     <string name="butt_main_opengl_test">Testuj OpenGL ES 2.0</string>
     <string name="butt_main_logcat_str">Logcat</string>
     <string name="main_action_logcat">Logcat</string>
+    <string name="recognize_action_set_tag">Ustaw tag</string>
 
 </resources>

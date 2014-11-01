@@ -67,9 +67,7 @@ public class OfflineDataHelper {
 	    File file = new File(Environment.getExternalStoragePublicDirectory(
 	            WRITABLE_DIRECTORY), screenShotName);
 	    if (!file.getParentFile().mkdirs()) {
-	    	if(Constants.DEBUG){
-	    		Log.v(TAG, "Directory not created");
-	    	}
+    		Log.v(TAG, "Directory not created");
 	    }
 	    return file;
 	}
@@ -200,11 +198,7 @@ public class OfflineDataHelper {
 			bmp.compress(Bitmap.CompressFormat.PNG, 100, out);
 			bmp.recycle();
 		} catch (Exception e) {
-		    if(!Constants.DEBUG){
-		    	Log.e(TAG,"Couldn't save image -err2");
-		    }else{
-		    	Log.e(TAG,"Couldn't save image: "+e.getMessage());
-		    }
+	    	Log.e(TAG,"Couldn't save image: "+e.getMessage());
 		} finally {
 		       try{
 		           out.close();

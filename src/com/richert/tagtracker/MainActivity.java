@@ -42,6 +42,7 @@ public class MainActivity extends Activity implements Runnable, SpeechToTextList
 	private static final int ID = MainActivity.class.hashCode();
 	public final static String INTRO = "Make your selection - pick number! First: Calibrate your camera. Second: Recognize the tags. Third: Drive the motors, Fourth: Generate the tags.";
 	public final static String REPEAT = "I didn't catch that. Please repeat.";
+	public static final String INTENT_EXTRA = "intent type";
 	private Button calibrateButton = null;
 	private Button recognizeButton = null;
 	private Button generateButton = null;
@@ -58,7 +59,7 @@ public class MainActivity extends Activity implements Runnable, SpeechToTextList
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		asked = false;
-		String action = getIntent().getAction();
+		final String action = getIntent().getAction();
 		setContentView(R.layout.activity_main);
 		calibrateButton = (Button) findViewById(R.id.butt_main_calibrate);
 		calibrateButton.setOnClickListener(new OnClickListener() {
@@ -66,6 +67,7 @@ public class MainActivity extends Activity implements Runnable, SpeechToTextList
 			public void onClick(View v) {
 				asked = true;
 				Intent calibrate = new Intent(context,CalibrateActivity.class);
+				calibrate.putExtra(INTENT_EXTRA, action);
 				startActivity(calibrate);
 			}
 		});
@@ -75,6 +77,7 @@ public class MainActivity extends Activity implements Runnable, SpeechToTextList
 			public void onClick(View v) {
 				asked = true;
 				Intent recognize = new Intent(context,RecognizeActivity.class);
+				recognize.putExtra(INTENT_EXTRA, action);
 				startActivity(recognize);
 			}
 		});
@@ -84,6 +87,7 @@ public class MainActivity extends Activity implements Runnable, SpeechToTextList
 			public void onClick(View v) {
 				asked = true;
 				Intent drive = new Intent(context,DriverActivity.class);
+				drive.putExtra(INTENT_EXTRA, action);
 				startActivity(drive);
 			}
 		});
@@ -93,6 +97,7 @@ public class MainActivity extends Activity implements Runnable, SpeechToTextList
 			public void onClick(View v) {
 				asked = true;
 				Intent generate = new Intent(context,MarkerGeneratorActivity.class);
+				generate.putExtra(INTENT_EXTRA, action);
 				startActivity(generate);
 			}
 		});

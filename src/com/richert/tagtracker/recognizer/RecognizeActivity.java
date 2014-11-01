@@ -16,7 +16,6 @@ import com.richert.tagtracker.calibrator.CalibrateActivity;
 import com.richert.tagtracker.driver.DriverActivity;
 import com.richert.tagtracker.driver.DriverHelper;
 import com.richert.tagtracker.elements.CameraDrawerPreview;
-import com.richert.tagtracker.elements.Constants;
 import com.richert.tagtracker.elements.FullScreenActivity;
 import com.richert.tagtracker.elements.OfflineDataHelper;
 import com.richert.tagtracker.elements.Pointer;
@@ -148,7 +147,8 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int id = item.getItemId();
-		if (id == R.id.recognize_action_resolution) {
+		switch(id){
+		case R.id.recognize_action_resolution:
 			params = preview.getCameraParameters();
 			ResolutionDialog resolutionDialog = new ResolutionDialog(params.getSupportedPreviewSizes()) {
 				@Override
@@ -165,10 +165,12 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 				}
 			};
 			resolutionDialog.show(getFragmentManager(), "resolutions");
-			
 			return true;
+		case R.id.recognize_action_set_tag:
+			return true;
+		default:
+			return false;
 		}
-		return super.onOptionsItemSelected(item);
 	}
 	@Override
 	protected void onSystemBarsVisible() {

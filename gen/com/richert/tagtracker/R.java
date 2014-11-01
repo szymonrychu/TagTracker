@@ -87,6 +87,7 @@ containing a value of this type.
         public static final int markergen_listview=0x7f060010;
         public static final int progressBar_main=0x7f06000f;
         public static final int recognize_action_resolution=0x7f060019;
+        public static final int recognize_action_set_tag=0x7f06001a;
         public static final int recognize_preview=0x7f060013;
         public static final int screenshot_button=0x7f060014;
     }
@@ -160,6 +161,7 @@ containing a value of this type.
         public static final int main_action_logcat=0x7f090019;
         public static final int main_mode_select_desc_str=0x7f090004;
         public static final int recognize_action_resolution=0x7f09000a;
+        public static final int recognize_action_set_tag=0x7f09001a;
         public static final int recognize_button_screenshot=0x7f090008;
         public static final int resolution_dialog_ok=0x7f09000b;
         public static final int title_activity_about=0x7f09000e;

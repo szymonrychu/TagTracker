@@ -4,7 +4,6 @@ using namespace cv;
 
 class Recognizer{
 private:
-	Mat  map1, map2;
 	bool processImages;
 	vector<Mat> tags;
 	int outline, normSize;
@@ -144,15 +143,13 @@ public:
 		this->adaptThresh = 5.0;
 		this->maxTagSize = 0.99;
 		this->minTagSize = 0.01;
-		this->normSize = 50;
+		this->normSize = 25;
 		this->tagSize = 5;
 		this->preview = true;
 		this->rotation = 0;
 
 
 
-		this->map1 = Mat(imageSize,CV_32FC1);
-		this->map2 = Mat(imageSize,CV_32FC1);
 		this->processImages = false;
 		this->norm2DPts[0] = Point2f(0,0);
 		this->norm2DPts[1] = Point2f(normSize-1,0);
@@ -213,7 +210,7 @@ public:
 						}
 	    			}
 	    			Rect roi(minX, minY, maxX-minX+1, maxY-minY+1);
-    				//cornerSubPix(mGray, refinedVertices, Size(3,3), Size(-1,-1), TermCriteria(1, 3, 1));
+    				cornerSubPix(mGray, refinedVertices, Size(3,3), Size(-1,-1), TermCriteria(1, 3, 1));
 	    			Point2f roi2DPts[4];
 					for(counter=0; counter<4;counter++){
 						roi2DPts[counter] = Point2f(refinedVertices.at((4+v1-counter)%4).x - minX, refinedVertices.at((4+v1-counter)%4).y - minY);
