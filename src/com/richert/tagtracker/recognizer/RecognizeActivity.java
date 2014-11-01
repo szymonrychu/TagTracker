@@ -20,6 +20,7 @@ import com.richert.tagtracker.elements.FullScreenActivity;
 import com.richert.tagtracker.elements.OfflineDataHelper;
 import com.richert.tagtracker.elements.Pointer;
 import com.richert.tagtracker.elements.ResolutionDialog;
+import com.richert.tagtracker.elements.TagDialog;
 import com.richert.tagtracker.elements.CameraDrawerPreview.CameraProcessingCallback;
 import com.richert.tagtracker.elements.CameraDrawerPreview.CameraSetupCallback;
 import com.richert.tagtracker.elements.TextToSpeechToText;
@@ -76,7 +77,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private int confidenceCounter = 0;
 	private final static String WHAT_TAG_FOLLOW = "what tag number should I follow?";
 	private final static String DONT_SEE_TAGZ = "I don't see any tags, stopping!";
-	private final static String FOLLOWING_ = "Following tag number: ";
+	private final static String FOLLOWING_ = "Following tag number ";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -106,8 +107,12 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		redPaint.setStrokeWidth(7.0f);
 		redPaint.setTextSize(25.0f);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		ttstt = new TextToSpeechToText(this);
-		ttstt.setSpeechToTextListener(this);
+		Intent intent = getIntent();
+		String extra = intent.getStringExtra(MainActivity.INTENT_EXTRA);
+		if(extra.contentEquals(UsbManager.ACTION_USB_DEVICE_ATTACHED)){
+			ttstt = new TextToSpeechToText(this);
+			ttstt.setSpeechToTextListener(this);
+		}
 		mainLooper = this.getMainLooper();
 		for(boolean t : tagMap){
 			t = false;
@@ -124,7 +129,17 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 				
 				@Override
 				public void run() {
-					ttstt.speak(WHAT_TAG_FOLLOW);
+					if(ttstt != null){
+						ttstt.speak(WHAT_TAG_FOLLOW);
+					}else{
+						TagDialog tagDialog = new TagDialog(0,32) {
+							@Override
+							public void onListItemClick(DialogInterface dialog, Integer tag) {
+								trackedID = tag;
+							}
+						};
+						tagDialog.show(getFragmentManager(), "tagz");
+					}
 				}
 			});
 		}
@@ -135,7 +150,9 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		if(driverHelper != null){
 			driverHelper.unregisterReceiver();
 		}
-		ttstt.onPause();
+		if(ttstt != null){
+			ttstt.onPause();
+		}
 		super.onPause();
 	}
 	@Override
@@ -167,6 +184,13 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			resolutionDialog.show(getFragmentManager(), "resolutions");
 			return true;
 		case R.id.recognize_action_set_tag:
+			TagDialog tagDialog = new TagDialog(0,32) {
+				@Override
+				public void onListItemClick(DialogInterface dialog, Integer tag) {
+					trackedID = tag;
+				}
+			};
+			tagDialog.show(getFragmentManager(), "tagz");
 			return true;
 		default:
 			return false;
@@ -231,14 +255,34 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 					h.post(new Runnable() {
 						@Override
 						public void run() {
-							ttstt.speak(WHAT_TAG_FOLLOW);
+							if(ttstt != null){
+								ttstt.speak(WHAT_TAG_FOLLOW);
+							}else{
+								TagDialog tagDialog = new TagDialog(0,32) {
+									@Override
+									public void onListItemClick(DialogInterface dialog, Integer tag) {
+										trackedID = tag;
+									}
+								};
+								tagDialog.show(getFragmentManager(), "tagz");
+							}
 						}
 					});
 				}else{
 					h.post(new Runnable() {
 						@Override
 						public void run() {
-							ttstt.speak(DONT_SEE_TAGZ);
+							if(ttstt != null){
+								ttstt.speak(DONT_SEE_TAGZ);
+							}else{
+								TagDialog tagDialog = new TagDialog(0,32) {
+									@Override
+									public void onListItemClick(DialogInterface dialog, Integer tag) {
+										trackedID = tag;
+									}
+								};
+								tagDialog.show(getFragmentManager(), "tagz");
+							}
 						}
 					});
 				}
@@ -256,7 +300,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		if(tags!=null){
 			previewX = previewY = 0;
 			for(Tag tag : tags){
-				newTagMap[tag.id]=true;
+				newTagMap[tag.id-1]=true;
 				if(tag.id == trackedID){
 					float steerX = drawTag(tag, canvas, greenPaint)/viewWidth;
 					drawTagPreview(tag, canvas, greenPaint);

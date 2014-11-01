@@ -107,7 +107,7 @@ public class MainActivity extends Activity implements Runnable, SpeechToTextList
 
 		//Intent.ACTION_MAIN
 		//UsbManager.ACTION_USB_DEVICE_ATTACHED
-		if(asked != true && action == UsbManager.ACTION_USB_DEVICE_ATTACHED){
+		if(asked != true && action.contentEquals(UsbManager.ACTION_USB_DEVICE_ATTACHED)){
 			asked = true;
 			Handler handler = new Handler();
 			handler.postDelayed(this,timeMillis);
