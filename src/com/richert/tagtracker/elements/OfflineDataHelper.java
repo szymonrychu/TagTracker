@@ -28,6 +28,7 @@ public class OfflineDataHelper {
 	private final static String PREFERENCE_RESOLUTION_HEIGHT="resolution_height";
 	private final static String CAMERA_MATRIX="camera_matrix";
 	private final static String DISTORTION_MATRIX="distortion_matrix";
+	private final static String PREFERED_ACTIVITY="preferenced_activity";
 	private final static String WRITABLE_DIRECTORY="/tracker_screenshots/";
 	private final static String DELIM=":";
 	private final static String ROW_DELIM=";";
@@ -204,5 +205,13 @@ public class OfflineDataHelper {
 		           out.close();
 		       } catch(Throwable ignore) {}
 		}
+	}
+	public void savePreferencedActivity(String activitySimpleName){
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.putString(PREFERED_ACTIVITY, activitySimpleName);
+		editor.commit();
+	}
+	public String loadPreferedActivity(){
+		return preferences.getString(PREFERED_ACTIVITY, "");
 	}
 }

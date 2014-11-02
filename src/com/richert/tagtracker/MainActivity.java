@@ -1,135 +1,89 @@
 package com.richert.tagtracker;
 
-import java.util.ArrayList;
-import java.util.Locale;
-
-import com.richert.tagtracker.calibrator.CalibrateActivity;
-import com.richert.tagtracker.driver.DriverActivity;
-import com.richert.tagtracker.elements.AboutActivity;
-import com.richert.tagtracker.elements.LicencesActivity;
-import com.richert.tagtracker.elements.LogcatActivity;
-import com.richert.tagtracker.elements.TextToSpeechToText;
-import com.richert.tagtracker.elements.TextToSpeechToText.SpeechToTextListener;
-import com.richert.tagtracker.markergen.MarkerGeneratorActivity;
-import com.richert.tagtracker.recognizer.RecognizeActivity;
-
-import android.animation.ObjectAnimator;
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.speech.RecognizerIntent;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.TextToSpeech.OnInitListener;
-import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
-import android.speech.tts.UtteranceProgressListener;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
-import android.widget.ProgressBar;
-import android.widget.Toast;
 
-public class MainActivity extends Activity implements Runnable, SpeechToTextListener {
+import com.richert.tagtracker.driver.DriverActivity;
+import com.richert.tagtracker.elements.AboutActivity;
+import com.richert.tagtracker.elements.LicencesActivity;
+import com.richert.tagtracker.elements.LogcatActivity;
+import com.richert.tagtracker.elements.OfflineDataHelper;
+import com.richert.tagtracker.markergen.MarkerGeneratorActivity;
+import com.richert.tagtracker.recognizer.RecognizeActivity;
+
+public class MainActivity extends Activity implements Runnable{
 	private static final String TAG = MainActivity.class.getSimpleName();
 	private static final int ID = MainActivity.class.hashCode();
-	public final static String INTRO = "Make your selection - pick number! First: Calibrate your camera. Second: Recognize the tags. Third: Drive the motors, Fourth: Generate the tags.";
-	public final static String REPEAT = "I didn't catch that. Please repeat.";
 	public static final String INTENT_EXTRA = "intent type";
-	private Button calibrateButton = null;
 	private Button recognizeButton = null;
 	private Button generateButton = null;
 	private Button driverButton = null;
-	private ProgressBar progressBar = null;
 	private Context context;
-	private int timeMillis=5000;
-	private TextToSpeechToText ttstt;
-	private Boolean asked = false;
+	private String action, preferedActivity;
+	private OfflineDataHelper dbHelper;
+	private String driverSimpleName, recognizeSimpleName;
 	public MainActivity() {
 		this.context = this;
 	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		asked = false;
-		final String action = getIntent().getAction();
+		dbHelper = new OfflineDataHelper(this);
 		setContentView(R.layout.activity_main);
-		calibrateButton = (Button) findViewById(R.id.butt_main_calibrate);
-		calibrateButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				asked = true;
-				Intent calibrate = new Intent(context,CalibrateActivity.class);
-				calibrate.putExtra(INTENT_EXTRA, action);
-				startActivity(calibrate);
-			}
-		});
+		driverSimpleName = DriverActivity.class.getSimpleName();
+		recognizeSimpleName = RecognizeActivity.class.getSimpleName();
+		action = getIntent().getAction();
 		recognizeButton = (Button) findViewById(R.id.butt_main_recognize);
+		driverButton = (Button) findViewById(R.id.butt_main_driver);
+		generateButton = (Button) findViewById(R.id.butt_main_marker_gen);
+	}
+	
+	@Override
+	protected void onResume() {
+		action = getIntent().getAction();
+		if(action.contentEquals(UsbManager.ACTION_USB_DEVICE_ATTACHED)){
+			Handler h = new Handler();
+			h.post(this);
+		}
 		recognizeButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				asked = true;
+				dbHelper.savePreferencedActivity(RecognizeActivity.class.getSimpleName());
 				Intent recognize = new Intent(context,RecognizeActivity.class);
 				recognize.putExtra(INTENT_EXTRA, action);
 				startActivity(recognize);
 			}
 		});
-		driverButton = (Button) findViewById(R.id.butt_main_driver);
 		driverButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				asked = true;
+				dbHelper.savePreferencedActivity(DriverActivity.class.getSimpleName());
 				Intent drive = new Intent(context,DriverActivity.class);
 				drive.putExtra(INTENT_EXTRA, action);
 				startActivity(drive);
 			}
 		});
-		generateButton = (Button) findViewById(R.id.butt_main_marker_gen);
 		generateButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				asked = true;
 				Intent generate = new Intent(context,MarkerGeneratorActivity.class);
 				generate.putExtra(INTENT_EXTRA, action);
 				startActivity(generate);
 			}
 		});
-		progressBar = (ProgressBar) findViewById(R.id.progressBar_main);
-		progressBar.setMax(1000);
-		progressBar.setProgress(0);
-
-		//Intent.ACTION_MAIN
-		//UsbManager.ACTION_USB_DEVICE_ATTACHED
-		if(asked != true && action.contentEquals(UsbManager.ACTION_USB_DEVICE_ATTACHED)){
-			asked = true;
-			Handler handler = new Handler();
-			handler.postDelayed(this,timeMillis);
-			progressBar.setProgress(0);
-			ObjectAnimator animation = ObjectAnimator.ofInt(progressBar, "progress", 1000); 
-		    animation.setDuration(timeMillis);
-		    animation.setInterpolator(new DecelerateInterpolator());
-		    animation.start();
-		}else{
-	        progressBar.setVisibility(View.INVISIBLE);
-		}
-	}
-	
-	@Override
-	protected void onResume() {
-		ttstt = new TextToSpeechToText(this);
-		ttstt.setSpeechToTextListener(this);
 		super.onResume();
 	}
 	@Override
 	protected void onPause() {
-		ttstt.onPause();
 		super.onPause();
 	}
 	@Override
@@ -164,45 +118,20 @@ public class MainActivity extends Activity implements Runnable, SpeechToTextList
 	}
 	@Override
 	public void run() {
-        progressBar.setVisibility(View.INVISIBLE);
-		ttstt.speak(INTRO);
+		preferedActivity = dbHelper.loadPreferedActivity();
+		//Intent.ACTION_MAIN
+		//UsbManager.ACTION_USB_DEVICE_ATTACHED
+		try{
+			if(preferedActivity.contentEquals(recognizeSimpleName)){
+				Intent recognize = new Intent(context,RecognizeActivity.class);
+				recognize.putExtra(INTENT_EXTRA, action);
+				startActivity(recognize);
+			}else if(preferedActivity.contentEquals(driverSimpleName)){
+				Intent drive = new Intent(context,DriverActivity.class);
+				drive.putExtra(INTENT_EXTRA, action);
+				startActivity(drive);
+			}
+		}catch ( Exception e){}
 	}
 	
-	@Override
-	public void onPartialRecognitionResult(String result, float confidence) {
-		Log.v(TAG,"onPartialRecognitionResult:"+result+":"+confidence);
-	}
-	@Override
-	public void onRecognitionResult(String response, float confidence) {
-		Log.v(TAG,"onRecognitionResult:"+response+":"+confidence);
-		if(confidence < 0.5){
-			ttstt.recognizeText();
-		}else{
-
-	        if(response.contains("one") || response.contains("first") || response.contains("calibrate")){
-	            ttstt.speak("Starting camera calibration module.");
-				Intent calibrate = new Intent(context,CalibrateActivity.class);
-				startActivity(calibrate);
-	        }else if(response.contains("two") || response.contains("second") || response.contains("recognize")){
-				Intent recognize = new Intent(context,RecognizeActivity.class);
-				startActivity(recognize);
-	        }else if(response.contains("three") || response.contains("third") || response.contains("drive")){
-	            ttstt.speak("Starting driver module");
-				Intent drive = new Intent(context,DriverActivity.class);
-				startActivity(drive);
-	        }else if(response.contains("four") || response.contains("fourth") || response.contains("generate")){
-	            ttstt.speak("Starting generator module");
-				Intent generate = new Intent(context,MarkerGeneratorActivity.class);
-				startActivity(generate);
-	        }else{
-	    		ttstt.speak(INTRO);
-	        }
-		}
-	}
-	@Override
-	public void onDoneTalking(String text) {
-		if(text.contentEquals(INTRO)){
-			ttstt.recognizeText();
-		}
-	}
 }

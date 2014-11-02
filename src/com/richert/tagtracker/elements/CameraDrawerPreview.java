@@ -20,6 +20,7 @@ import android.graphics.PixelFormat;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -170,7 +171,7 @@ public class CameraDrawerPreview extends ViewGroup {
 	public void requestRefresh(){
 		drawerView.refresh();
 	}
-	//##########################################################3
+	//##########################################################
 	private void init(Context context){
 		this.context = context;
 		this.cameraView = new CameraView(this);
@@ -375,6 +376,7 @@ public class CameraDrawerPreview extends ViewGroup {
 							cameraProcessingCallback.drawOnCamera(canvas,scaleX,scaleY);
 						}
 						surfaceHolder.unlockCanvasAndPost(canvas);
+							
 				}
 			}
 		}

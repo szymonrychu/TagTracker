@@ -1,7 +1,9 @@
 package com.richert.tagtracker.recognizer;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import org.opencv.android.OpenCVLoader;
@@ -12,7 +14,6 @@ import com.richert.tagtracker.R;
 import com.richert.tagtracker.R.id;
 import com.richert.tagtracker.R.layout;
 import com.richert.tagtracker.R.menu;
-import com.richert.tagtracker.calibrator.CalibrateActivity;
 import com.richert.tagtracker.driver.DriverActivity;
 import com.richert.tagtracker.driver.DriverHelper;
 import com.richert.tagtracker.elements.CameraDrawerPreview;
@@ -37,7 +38,9 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.hardware.Camera;
+import android.hardware.Camera.Area;
 import android.hardware.Camera.Parameters;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
@@ -71,7 +74,6 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	public int trackedID = -1;
 	private TextToSpeechToText ttstt;
 	private Boolean asked = false;
-	private Thread askingThread;
 	private Looper mainLooper;
 	private boolean[] tagMap = new boolean[32];
 	private int confidenceCounter = 0;
@@ -132,7 +134,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 					if(ttstt != null){
 						ttstt.speak(WHAT_TAG_FOLLOW);
 					}else{
-						TagDialog tagDialog = new TagDialog(0,32) {
+						TagDialog tagDialog = new TagDialog(1,33) {
 							@Override
 							public void onListItemClick(DialogInterface dialog, Integer tag) {
 								trackedID = tag;
@@ -184,7 +186,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			resolutionDialog.show(getFragmentManager(), "resolutions");
 			return true;
 		case R.id.recognize_action_set_tag:
-			TagDialog tagDialog = new TagDialog(0,32) {
+			TagDialog tagDialog = new TagDialog(1,33) {
 				@Override
 				public void onListItemClick(DialogInterface dialog, Integer tag) {
 					trackedID = tag;
@@ -258,7 +260,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 							if(ttstt != null){
 								ttstt.speak(WHAT_TAG_FOLLOW);
 							}else{
-								TagDialog tagDialog = new TagDialog(0,32) {
+								TagDialog tagDialog = new TagDialog(1,33) {
 									@Override
 									public void onListItemClick(DialogInterface dialog, Integer tag) {
 										trackedID = tag;
@@ -322,8 +324,35 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		
 		
 	}
+	@SuppressWarnings("deprecation")
+	private void setCameraParameters(Parameters params){
+		if(params.isAutoExposureLockSupported()){
+			params.setAutoExposureLock(false);
+		}
+		if(params.isAutoWhiteBalanceLockSupported()){
+			params.setAutoWhiteBalanceLock(false);
+		}
+		if(params.isVideoStabilizationSupported()){
+			params.setVideoStabilization(true);
+		}
+		if(params.getAntibanding().contains(Parameters.ANTIBANDING_AUTO)){
+			params.setAntibanding(Parameters.ANTIBANDING_AUTO);
+		}
+		if(params.getMaxNumFocusAreas() > 0){
+			List<Area> areas = params.getMeteringAreas();
+			if(areas != null){
+				for(Area a : areas){
+					Log.v(TAG," b:"+a.rect.bottom +" t:"+a.rect.top+" l:"+a.rect.left+" r:"+a.rect.right);
+				}
+			}
+			areas = new ArrayList<Camera.Area>();
+			areas.add(new Area(new Rect(-500, -500, 500, 500), 1000));
+			params.setMeteringAreas(areas);
+		}
+	}
 	@Override
 	public void setCameraParameters(Parameters params, int width, int height, int rotation) {
+		setCameraParameters(params);
 		viewHeight = height;
 		viewWidth = width;
 		Log.v(TAG,"params.getPreviewSize()=w:"+params.getPreviewSize().width+":h:"+params.getPreviewSize().height);
@@ -331,11 +360,13 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	}
 	@Override
 	public void setCameraInitialParameters(Parameters params, int width, int height, int rotation) {
+		setCameraParameters(params);
 		viewHeight = height;
 		viewWidth = width;
 		camWidth = helper.getResolutionWidth(params.getPreviewSize().width);
 		camHeight = helper.getResolutionHeight(params.getPreviewSize().height);
 		params.setPreviewSize(camWidth, camHeight);
+		
 		recognizer = new Recognizer(width, height);
 		recognizer.notifySizeChanged(params.getPreviewSize(), rotation);
 		

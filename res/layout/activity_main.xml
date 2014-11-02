@@ -19,21 +19,12 @@
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <Button
-        android:id="@+id/butt_main_calibrate"
+        android:id="@+id/butt_main_recognize"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/logcat_text_view"
         android:layout_alignRight="@+id/logcat_text_view"
         android:layout_below="@+id/logcat_text_view"
-        android:text="@string/butt_main_calibrate_str" />
-
-    <Button
-        android:id="@+id/butt_main_recognize"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/butt_main_calibrate"
-        android:layout_alignRight="@+id/butt_main_calibrate"
-        android:layout_below="@+id/butt_main_calibrate"
         android:text="@string/butt_main_recognize_str" />
 
     <Button
@@ -53,14 +44,5 @@
         android:layout_alignRight="@+id/butt_main_driver"
         android:layout_below="@+id/butt_main_driver"
         android:text="@string/butt_main_generate_str" />
-
-    <ProgressBar
-        android:id="@+id/progressBar_main"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true" />
 
 </RelativeLayout>
