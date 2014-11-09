@@ -132,7 +132,9 @@ public class DriverActivity extends FullScreenActivity implements Callback, Runn
 
 	public void redraw(Canvas canvas){
 		controlsHelper.drawControls(canvas);
-		canvas.drawText("Connected="+driverHelper.transreceive, 50, 50, paint);
+		float Y = 50;
+		canvas.drawText("Status: "+driverHelper.getState(), 50, Y+=50, paint);
+		canvas.drawText("Driver buffer: " + driverHelper.getBuffer(), 50, Y+=50, paint);
 	}
 	@Override
 	public void run() {
@@ -166,7 +168,7 @@ public class DriverActivity extends FullScreenActivity implements Callback, Runn
 	
 	@Override
 	public void getPivotPosition(float procX, float procY) {
-		driverHelper.steer(procX,procY);
+		driverHelper.steer(procX,procY,0);
 		
 		// TODO Auto-generated method stub
 		

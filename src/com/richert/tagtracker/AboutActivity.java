@@ -1,4 +1,4 @@
-package com.richert.tagtracker.elements;
+package com.richert.tagtracker;
 
 import com.richert.tagtracker.R;
 import com.richert.tagtracker.R.layout;

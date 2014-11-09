@@ -13,9 +13,6 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 
 import com.richert.tagtracker.driver.DriverActivity;
-import com.richert.tagtracker.elements.AboutActivity;
-import com.richert.tagtracker.elements.LicencesActivity;
-import com.richert.tagtracker.elements.LogcatActivity;
 import com.richert.tagtracker.elements.OfflineDataHelper;
 import com.richert.tagtracker.markergen.MarkerGeneratorActivity;
 import com.richert.tagtracker.recognizer.RecognizeActivity;
@@ -111,6 +108,10 @@ public class MainActivity extends Activity implements Runnable{
 		case R.id.main_action_logcat:
 			Intent logcat = new Intent(context,LogcatActivity.class);
 			startActivity(logcat);
+			return true;
+		case R.id.main_action_othercode:
+			Intent othercode = new Intent(context,OtherCodesActivity.class);
+			startActivity(othercode);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);

@@ -48,7 +48,7 @@
       			android:resource="@xml/device_filter" />
         </activity>
         <activity
-            android:name=".elements.LogcatActivity"
+            android:name="com.richert.tagtracker.LogcatActivity"
             android:label="@string/title_activity_logcat">
         </activity>
         <activity
@@ -65,17 +65,21 @@
             android:theme="@style/android:Theme.Material" >
         </activity>
         <activity
-            android:name=".elements.AboutActivity"
+            android:name=".driver.DriverActivity"
+            android:label="@string/title_activity_driver">
+        </activity>
+        <activity
+            android:name=".AboutActivity"
             android:label="@string/title_activity_about"
             android:theme="@style/android:Theme.Material" >
         </activity>
         <activity
-            android:name=".elements.LicencesActivity"
+            android:name=".LicencesActivity"
             android:label="@string/title_activity_licences"
             android:theme="@style/android:Theme.Material" >
         </activity>
         <activity
-            android:name=".driver.DriverActivity"
+            android:name=".OtherCodesActivity"
             android:label="@string/title_activity_driver">
         </activity>
         

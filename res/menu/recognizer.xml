@@ -6,6 +6,13 @@
         android:id="@+id/recognize_action_resolution"
         android:orderInCategory="100"
         android:title="@string/recognize_action_resolution"/>
-    <item android:id="@+id/recognize_action_set_tag" android:orderInCategory="100" android:title="@string/recognize_action_set_tag"></item>
+    <item
+		android:id="@+id/recognize_action_set_tag"
+		android:orderInCategory="100"
+		android:title="@string/recognize_action_set_tag"/>
+    <item
+		android:id="@+id/recognize_action_debug"
+        android:orderInCategory="100"
+		android:title="@string/recognize_action_debug" android:checked="false" android:checkable="true"/>
 
 </menu>

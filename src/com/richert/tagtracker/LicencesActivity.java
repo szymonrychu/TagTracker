@@ -1,4 +1,4 @@
-package com.richert.tagtracker.elements;
+package com.richert.tagtracker;
 
 import org.opencv.android.OpenCVLoader;
 

@@ -1,4 +1,4 @@
-package com.richert.tagtracker.elements;
+package com.richert.tagtracker;
 
 import java.io.BufferedReader;
 import java.io.IOException;

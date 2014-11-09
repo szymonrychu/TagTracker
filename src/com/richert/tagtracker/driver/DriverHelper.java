@@ -31,6 +31,8 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
 	private Boolean sending = false;
 	private int steerMax = 240;
 	private int steerMin = 115;
+	private int pivotMax = 240;
+	private int pivotMin = 115;
     private float prevX;
     private float prevY;
     private String buffer = "";
@@ -45,33 +47,36 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
     public void unregisterReceiver(){
     	context.unregisterReceiver(this);
     }
-    public void steer(final float procX, final float procY){
-    	if((prevX != procX || prevY != procY)
-    			&& usbConnection!=null && outEndpoint != null
-    			&& buffer != null && !sending){
+    public void steer(final float procX, final float procY, final float procZ){
+    	if((prevX != procX || prevY != procY) && !sending){
     		Thread th = new Thread(){
 				@Override
 				public void run() {
 					sending = true;
 					prevX = procX;
 					prevY = procY;
-					int steer, lFront, lBack, rFront, rBack;
+					int steer, lFront, lBack, rFront, rBack, pivot;
 					int steerCenter = (steerMax - steerMin)/2 + steerMin;
+					int pivotCenter = (pivotMax - pivotMin)/2 + pivotMin;
 					steer = steerCenter + (int)(procX*((steerMax - steerMin)/2));
+					pivot = pivotCenter + (int)(procZ*((pivotMax - pivotMin)/2));
 			
 					lBack = procY > 0 ? procX > 0 ? (int)(procY*255) : Math.max((int)(procY*255)+(int)(procX*50),0) : 0;//leftT
 					lFront = procY < 0 ? procX > 0 ? -(int)(procY*255) : Math.max(-(int)(procY*255)+(int)(procX*50),0) : 0;//leftP
 					rBack = procY > 0 ? procX < 0 ? (int)(procY*255) : Math.max((int)(procY*255)-(int)(procX*50),0) : 0;//rightT
 					rFront = procY < 0 ? procX < 0 ? -(int)(procY*255) : Math.max(-(int)(procY*255)-(int)(procX*50),0) : 0;//rightP
-					/*
-					lBack = procY < 0 ? -(int)(procY*255) : 0;
-					rFront = procY > 0 ? (int)(procY*255) : 0;
-					rBack = procY < 0 ? -(int)(procY*255) : 0;*/
+					StringBuilder sb = new StringBuilder();
+					sb.append(String.format("%03d,", steer));
+					sb.append(String.format("%03d,", pivot));
+					sb.append(String.format("%03d,", lFront));
+					sb.append(String.format("%03d,", lBack));
+					sb.append(String.format("%03d,", rFront));
+					sb.append(String.format("%03d,", rBack));
+					buffer = sb.toString();
+					if(usbConnection!=null && outEndpoint != null)	{
+						usbConnection.bulkTransfer(outEndpoint, buffer.getBytes(), buffer.getBytes().length, timeoutMs);
+					}
 					
-					
-
-					buffer = ""+steer+","+lFront+","+lBack+","+rFront+","+rBack+",";
-					usbConnection.bulkTransfer(outEndpoint, buffer.getBytes(), buffer.getBytes().length, timeoutMs);
 					try {
 						Thread.sleep(10);
 					} catch (InterruptedException e) {
@@ -85,6 +90,9 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
 			th.start();
 			
     	}
+    }
+    public String getBuffer(){
+    	return buffer;
     }
     @Override
 	public void onReceive(Context context, Intent intent) {
@@ -109,6 +117,25 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
         	}
         }
         
+    }
+    private String checkIfNull(Object obj){
+    	if(obj == null){
+    		return "null";
+    	}else{
+    		return "valid";
+    	}
+    }
+    public String getState(){
+    	StringBuilder sb = new StringBuilder();
+    	sb.append("device:");
+    	sb.append(checkIfNull(usbDevice));
+    	sb.append(":connection:");
+    	sb.append(checkIfNull(usbConnection));
+    	sb.append(":inEndpoint:");
+    	sb.append(checkIfNull(inEndpoint));
+    	sb.append(":outEndpoint:");
+    	sb.append(checkIfNull(outEndpoint));
+    	return sb.toString();
     }
 	private Boolean findDevice(UsbManager usbManager) {
         HashMap<String, UsbDevice> usbDeviceList = usbManager.getDeviceList();
@@ -140,15 +167,45 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
             UsbInterface usbInterface = usbDevice.getInterface(1);
             if(!usbConnection.claimInterface(usbInterface, true)){
             	usbConnection.close();
+            	usbConnection = null;
             	return false;
             }
 
-            //usbConnection.controlTransfer(0x21, 34, 0, 0, getLineEncoding(19200), 7, 1000);
-
-            usbConnection.controlTransfer(0x21, 34, 0, 0, null, 0, 0);
-            usbConnection.controlTransfer(0x21, 32, 0, 0, new byte[] { (byte) 0x80,
+            /*connection.controlTransfer(0x21, 34, 0, 0, null, 0, 0);
+            connection.controlTransfer(0x21, 32, 0, 0, new byte[] { (byte) 0x80,
                     0x25, 0x00, 0x00, 0x00, 0x00, 0x08 }, 7, 0);
-            usbConnection.controlTransfer(0x40, 0x03, 0x4138, 0, null, 0, 0); //Baudrate 9600
+            connection.controlTransfer(0x40, 0x03, 0x4138, 0, null, 0, 0); //Baudrate 9600*/
+            
+
+            final int RQSID_SET_LINE_CODING = 0x20;
+            final int RQSID_SET_CONTROL_LINE_STATE = 0x22;
+            
+            
+            int usbResult;
+            usbResult = usbConnection.controlTransfer(
+              0x21,        //requestType
+              RQSID_SET_CONTROL_LINE_STATE, //SET_CONTROL_LINE_STATE 
+              0,     //value
+              0,     //index
+              null,    //buffer
+              0,     //length
+              0);    //timeout
+            //baud rate = 9600
+            //8 data bit
+            //1 stop bit
+            byte[] encodingSetting = 
+              new byte[] {(byte)0x80, 0x25, 0x00, 0x00, 0x00, 0x00, 0x08 };
+            usbResult = usbConnection.controlTransfer(
+              0x21,       //requestType
+              RQSID_SET_LINE_CODING,   //SET_LINE_CODING
+              0,      //value
+              0,      //index
+              encodingSetting,  //buffer
+              7,      //length
+              0);     //timeout
+            
+            
+            
             
             for (int i = 0; i < usbInterface.getEndpointCount(); i++) {
                 if (usbInterface.getEndpoint(i).getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {

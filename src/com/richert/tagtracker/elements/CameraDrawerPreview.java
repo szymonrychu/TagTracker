@@ -52,6 +52,9 @@ public class CameraDrawerPreview extends ViewGroup {
 	private Boolean recreateMatFrame=false;
 	private CameraProcessingCallback cameraProcessingCallback= null;
 	private OnMultitouch listener;
+	private long time = 0;
+	private long processingTime = 0;
+	private long frameDelayTime = 0;
 	public static int ROTATION_PORTRAIT=0;
 	public static int ROTATION_LANDSCAPE=1;
 	public static int ROTATION_PORT_UPS_DOWN=3;
@@ -161,6 +164,7 @@ public class CameraDrawerPreview extends ViewGroup {
 		Bitmap bmp = Misc.mat2Bitmap(Misc.yuv2Rgb(yuvFrame, rotation));
 		if(cameraProcessingCallback != null){
 			Canvas canvas = new Canvas(bmp);
+			
 			cameraProcessingCallback.drawOnCamera(canvas, scaleX, scaleY);
 		}
 		return bmp;
@@ -170,6 +174,12 @@ public class CameraDrawerPreview extends ViewGroup {
 	 */
 	public void requestRefresh(){
 		drawerView.refresh();
+	}
+	public long getOperationTime(){
+		return processingTime;
+	}
+	public long getDelayBetweenFrames(){
+		return frameDelayTime;
 	}
 	//##########################################################
 	private void init(Context context){
@@ -238,6 +248,8 @@ public class CameraDrawerPreview extends ViewGroup {
 					threads++;
 					Thread thread = new Thread(){
 						public void run(){
+							frameDelayTime = System.currentTimeMillis() - time;
+							time = System.currentTimeMillis();
 							if(previewRunning){
 								cameraProcessingCallback.processImage(yuvFrame, this);
 								cameraProcessingCallback.getPointers(listener.getPoints());
@@ -372,6 +384,7 @@ public class CameraDrawerPreview extends ViewGroup {
 				if(canvas!=null)
 						synchronized(canvas){
 						canvas.drawColor(0, Mode.CLEAR);
+						processingTime = System.currentTimeMillis() - time;
 						if(cameraProcessingCallback != null){
 							cameraProcessingCallback.drawOnCamera(canvas,scaleX,scaleY);
 						}

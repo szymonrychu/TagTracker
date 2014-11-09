@@ -51,16 +51,25 @@ public:
 		Mat preview;
 		Mat homo;
 		vector<Geometry::Point> points;
+		Geometry::Point center;
 		double l;
 		void setPoints(vector<Point2f> points,int rotation, Size matSize, double l){
 			vector<Point2f>::iterator it;
+			int X = 0;
+			int Y = 0;
+			int counter = 0;
 			for(it=points.begin();it!=points.end();it++){
 				Geometry::Point point;
 				point.x = it->x;
 				point.y = it->y;
 				this->points.push_back(point);
 				this->l = l;
+				X += point.x;
+				Y += point.y;
+				counter++;
 			}
+			this->center.x = X/counter;
+			this->center.y = Y/counter;
 		}
 		jobject toJava(JNIEnv*env, int rotation, Size matSize){
 			jfieldID idID = env->GetFieldID(jTagCls,"id","I");
@@ -68,6 +77,7 @@ public:
 			jfieldID homoID = env->GetFieldID(jTagCls,"homo","Lorg/opencv/core/Mat;");
 			jfieldID previewID = env->GetFieldID(jTagCls,"preview","Lorg/opencv/core/Mat;");
 			jfieldID pointsID = env->GetFieldID(jTagCls,"points","[Lcom/richert/tagtracker/geomerty/Point;");
+			jfieldID centerID = env->GetFieldID(jTagCls,"center","Lcom/richert/tagtracker/geomerty/Point;");
 
 			jobject result = env->NewObject(jTagCls,jTagConsID);
 
@@ -82,6 +92,7 @@ public:
 			jobject pointsJ = reinterpret_cast<jobject>(pointsJArray);
 			env->SetObjectField(result,pointsID,pointsJ);
 			env->DeleteLocalRef(pointsJ);
+			env->SetObjectField(result,centerID,center.toJava(env, rotation, matSize));
 			return result;
 		}
 	};

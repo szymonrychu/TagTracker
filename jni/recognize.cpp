@@ -205,8 +205,8 @@ public:
 						refinedVertices.push_back(*itVP);
 						d = norm(*itVP);
 						if (d<dmin) {
-						dmin=d;
-						v1=counter;
+							dmin=d;
+							v1=counter;
 						}
 	    			}
 	    			Rect roi(minX, minY, maxX-minX+1, maxY-minY+1);
@@ -225,6 +225,7 @@ public:
     				vector<int>::iterator it;
     				if(id!=-1){
         				Geometry::Tag tag;
+
 						tag.setPoints(refinedVertices,rotation,Size(mGray.cols,mGray.rows), len);
 						tag.preview = normROI;
 						tag.id = id;

@@ -1,10 +1,15 @@
 package com.richert.tagtracker.recognizer;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
@@ -17,6 +22,7 @@ import com.richert.tagtracker.R.menu;
 import com.richert.tagtracker.driver.DriverActivity;
 import com.richert.tagtracker.driver.DriverHelper;
 import com.richert.tagtracker.elements.CameraDrawerPreview;
+import com.richert.tagtracker.elements.CpuInfo;
 import com.richert.tagtracker.elements.FullScreenActivity;
 import com.richert.tagtracker.elements.OfflineDataHelper;
 import com.richert.tagtracker.elements.Pointer;
@@ -68,8 +74,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private int camWidth, camHeight;
 	private int viewWidth, viewHeight;
 	private Tag[] tags;
-	private Paint greenPaint;
-	private Paint redPaint;
+	private Paint greenPaint, redPaint, bluePaint;
 	private DriverHelper driverHelper;
 	public int trackedID = -1;
 	private TextToSpeechToText ttstt;
@@ -80,6 +85,11 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private final static String WHAT_TAG_FOLLOW = "what tag number should I follow?";
 	private final static String DONT_SEE_TAGZ = "I don't see any tags, stopping!";
 	private final static String FOLLOWING_ = "Following tag number ";
+	private int previewX=0;
+	private int previewY=0;
+	private boolean showDebug = false;
+	private CpuInfo cpuInfo;
+	private Button screenshotButton;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +98,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
         preview.setCameraSetupCallback(this);
         preview.setCameraProcessingCallback(this);
 		helper = new OfflineDataHelper(this);
-		Button screenshotButton = (Button) findViewById(R.id.screenshot_button);
+		screenshotButton = (Button) findViewById(R.id.screenshot_button);
 		screenshotButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -98,6 +108,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 				helper.saveScreenshot(bmp, "screenshot-"+date+".png");
 			}
 		});
+		screenshotButton.setVisibility(View.INVISIBLE);
 		greenPaint = new Paint();
 		greenPaint.setAntiAlias(true);
 		greenPaint.setColor(Color.GREEN);
@@ -108,6 +119,11 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		redPaint.setColor(Color.RED);
 		redPaint.setStrokeWidth(7.0f);
 		redPaint.setTextSize(25.0f);
+		bluePaint = new Paint();
+		bluePaint.setAntiAlias(true);
+		bluePaint.setColor(Color.BLUE);
+		bluePaint.setStrokeWidth(7.0f);
+		bluePaint.setTextSize(25.0f);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		Intent intent = getIntent();
 		String extra = intent.getStringExtra(MainActivity.INTENT_EXTRA);
@@ -119,11 +135,13 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		for(boolean t : tagMap){
 			t = false;
 		}
+		cpuInfo = new CpuInfo(300);
 		super.onCreate(savedInstanceState);
 	}
 	@Override
 	protected void onResume() {
 		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
+		cpuInfo.startReading();
 		if(asked != true){
 			asked = true;
 			Handler h = new Handler(mainLooper);
@@ -155,6 +173,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		if(ttstt != null){
 			ttstt.onPause();
 		}
+		cpuInfo.stopReading();
 		super.onPause();
 	}
 	@Override
@@ -194,6 +213,11 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			};
 			tagDialog.show(getFragmentManager(), "tagz");
 			return true;
+		case R.id.recognize_action_debug:
+			item.setChecked(! item.isChecked());
+			showDebug = item.isChecked();
+			screenshotButton.setVisibility(View.VISIBLE);
+			return true;
 		default:
 			return false;
 		}
@@ -214,28 +238,21 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		tags = recognizer.findTags(yuvFrame, rotation);
 		preview.requestRefresh();
 	}
-	float XX=0;
 
-	private static int previewX=0;
-	private static int previewY=0;
-	private static float X=0;
-	private static float Y=0;
-	private float drawTag(Tag tag, Canvas canvas, Paint paint){
-		X = Y = 0;
+	private void drawTag(Tag tag, Canvas canvas, Paint paint){
 		for(int c=0;c<4;c++){
 			float x1 = tag.points[c].x*viewWidth;
 			float y1 = tag.points[c].y*viewHeight;
 			float x2 = tag.points[(c+1)%4].x*viewWidth;
 			float y2 = tag.points[(c+1)%4].y*viewHeight;
 			canvas.drawLine(x1, y1, x2, y2, paint);
-			X+=x1;
-			Y+=y1;
 		}
-		canvas.drawText(""+tag.id, X/4, Y/4, paint);
-		return X/4;
+		canvas.drawText(""+tag.id, tag.center.x*viewWidth, tag.center.y*viewHeight, paint);
 	}
 	private void drawTagPreview(Tag tag, Canvas canvas,  Paint paint){
-		canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), previewX, previewY , redPaint);
+		if(showDebug){
+			canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), previewX, previewY , redPaint);
+		}
 	}
 	private void askIfChanged(final boolean[] newTagMap){
 		Boolean diff = false;
@@ -293,6 +310,19 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			confidenceCounter = 0;
 		}
 	}
+	private void drawDebugInfo(Canvas canvas){
+		int Y = 50;
+		if(showDebug){
+			canvas.drawText("Delay between frames: " + preview.getDelayBetweenFrames(), 50, Y+=50, bluePaint);
+			canvas.drawText("Processing delay: " + preview.getOperationTime(), 50, Y+=50, bluePaint);
+			canvas.drawText("Driver buffer: " + driverHelper.getBuffer(), 50, Y+=50, bluePaint);
+			for(int coreNum = 0; coreNum < cpuInfo.getNumCores(); coreNum++){
+				canvas.drawText(cpuInfo.getCpuUsage(coreNum), 50, Y+=50, bluePaint);
+			}
+			cpuInfo.drawCpuUsage(canvas, 50, Y+=50, 650, Y+=200);
+		}
+	}
+	
 	@Override
 	public void drawOnCamera(Canvas canvas, double scaleX, double scaleY) {
 		boolean[] newTagMap = new boolean[32];
@@ -304,25 +334,23 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			for(Tag tag : tags){
 				newTagMap[tag.id-1]=true;
 				if(tag.id == trackedID){
-					float steerX = drawTag(tag, canvas, greenPaint)/viewWidth;
+					drawTag(tag, canvas, greenPaint);
 					drawTagPreview(tag, canvas, greenPaint);
-					driverHelper.steer((float)(3*(steerX-0.5f)),-1.0f);
+					driverHelper.steer((float)(3*((tag.center.x)-0.5f)),-1.0f,(float)(3*((tag.center.y)-0.5f)));
 					
 				}else{
 					drawTag(tag, canvas, redPaint);
 					drawTagPreview(tag, canvas, redPaint);
-					driverHelper.steer(0,0);
+					driverHelper.steer(0,0,0);
 				}
 				previewX+=tag.preview.cols();
 			}
 			
 		}else{
-			driverHelper.steer(0,0);
+			driverHelper.steer(0,0,0);
 		}
-		
+		drawDebugInfo(canvas);
 		askIfChanged(newTagMap);
-		
-		
 	}
 	@SuppressWarnings("deprecation")
 	private void setCameraParameters(Parameters params){
