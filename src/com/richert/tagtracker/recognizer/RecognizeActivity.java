@@ -313,13 +313,13 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private void drawDebugInfo(Canvas canvas){
 		int Y = 50;
 		if(showDebug){
-			canvas.drawText("Delay between frames: " + preview.getDelayBetweenFrames(), 50, Y+=50, bluePaint);
-			canvas.drawText("Processing delay: " + preview.getOperationTime(), 50, Y+=50, bluePaint);
-			canvas.drawText("Driver buffer: " + driverHelper.getBuffer(), 50, Y+=50, bluePaint);
+			canvas.drawText("Delay between frames: " + preview.getDelayBetweenFrames(), 30, Y+=30, bluePaint);
+			canvas.drawText("Processing delay: " + preview.getOperationTime(), 30, Y+=30, bluePaint);
+			canvas.drawText("Driver buffer: " + driverHelper.getBuffer(), 30, Y+=30, bluePaint);
 			for(int coreNum = 0; coreNum < cpuInfo.getNumCores(); coreNum++){
-				canvas.drawText(cpuInfo.getCpuUsage(coreNum), 50, Y+=50, bluePaint);
+				canvas.drawText(cpuInfo.getCpuUsage(coreNum), 30, Y+=30, bluePaint);
 			}
-			cpuInfo.drawCpuUsage(canvas, 50, Y+=50, 650, Y+=200);
+			cpuInfo.drawCpuUsage(canvas, 30, Y+=30, 650, Y+=200);
 		}
 	}
 	
@@ -336,7 +336,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 				if(tag.id == trackedID){
 					drawTag(tag, canvas, greenPaint);
 					drawTagPreview(tag, canvas, greenPaint);
-					driverHelper.steer((float)(3*((tag.center.x)-0.5f)),-1.0f,(float)(3*((tag.center.y)-0.5f)));
+					driverHelper.steer((float)(3*((tag.center.x)-0.5f)),-1.0f,(float)4*((tag.center.y)-0.5f));
 					
 				}else{
 					drawTag(tag, canvas, redPaint);

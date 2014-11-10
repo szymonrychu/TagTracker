@@ -24,7 +24,9 @@ public class CpuInfo implements Runnable{
 	private Queue<float[]> queue;
 	private float[][] data;
 	private long[][] rawData;
+	private long[][] rawPreviousData;
 	private long total[];
+	private long previousTotal[];
 	private static final String[] legend = {"user", "nice", "system", "idle", "iowait", "irq", "sirq"};
 	private RandomAccessFile reader;
 	private Boolean opened;
@@ -37,17 +39,18 @@ public class CpuInfo implements Runnable{
 		queue = new LinkedBlockingQueue<float[]>(window);
 		data = new float[cpuNum+1][7];
 		rawData = new long[cpuNum+1][7];
+		rawPreviousData = new long[cpuNum+1][7];
 		total = new long[cpuNum+1];
+		previousTotal = new long[cpuNum+1];
 		for(int c=0;c<cpuNum+1; c++){
 			for(int n=0;n<6; n++){
 				data[c][n]=0;
 				rawData[c][n]=0;
+				rawPreviousData[c][n]=0;
 			}
 			total[c] = 1;
+			previousTotal[c] = 1;
 		}
-		
-		worker = new Thread(this);
-
 		paint = new Paint();
 		paint.setAntiAlias(true);
 		paint.setColor(Color.GREEN);
@@ -107,11 +110,11 @@ public class CpuInfo implements Runnable{
 			while(it.hasNext()){
 				float data[] = it.next();
 				for(int c=0; c<7; c++){
-					float tmpVal[] = {(float)360*c/6.0f, 1.0f, 1.0f};
+					float tmpVal[] = {(float)360*c/7.0f, 1.0f, 1.0f};
 					int tmpColor = Color.HSVToColor(tmpVal);
 					paint.setColor(tmpColor);
-					float py = deltaY*prev[c]/100 + y1;
-					float cy = deltaY*data[c]/100 + y1;
+					float py = deltaY*(100-prev[c])/100 + y1;
+					float cy = deltaY*(100-data[c])/100 + y1;
 					canvas.drawLine(posX, py, posX+deltaX, cy, paint);
 				}
 				prev = data;
@@ -166,10 +169,8 @@ public class CpuInfo implements Runnable{
 	}
 	public void startReading(){
 		openReader();
-		if(!worker.isAlive()){
-			worker = new Thread(this);
-			worker.start();
-		}
+		worker = new Thread(this);
+		worker.start();
 		
 	}
 	public void setState(Boolean read){
@@ -200,10 +201,12 @@ public class CpuInfo implements Runnable{
 				line = reader.readLine();
 				if(opened && line.startsWith("cpu")){
 					long raw[] = parseLine(line);
-					total[cpuNum] = raw[7] - total[cpuNum];
+					previousTotal[cpuNum] = total[cpuNum];
+					total[cpuNum] = raw[7];
 					for(int c=0; opened && c<7; c++){
-						rawData[cpuNum][c] = raw[c] - rawData[cpuNum][c];
-						data[cpuNum][c] = 100*((float)rawData[cpuNum][c])/((float)total[cpuNum]);
+						rawPreviousData[cpuNum][c] = rawData[cpuNum][c];
+						rawData[cpuNum][c] = raw[c];
+						data[cpuNum][c] = 100*((float)(rawPreviousData[cpuNum][c] - rawData[cpuNum][c]))/((float)(previousTotal[cpuNum] - total[cpuNum]));
 						synchronized(queue){
 							if(opened && queue.size() >= window){
 								queue.poll();
@@ -211,16 +214,19 @@ public class CpuInfo implements Runnable{
 							queue.add(data[cpuNum].clone());
 						}
 					}
+					line = reader.readLine();
 				}
 				for(int cpu=0; opened && cpu<cpuNum; cpu++){
-					line = reader.readLine();
 					if(opened && line.startsWith("cpu"+cpu)){
 						long raw[] = parseLine(line);
-						total[cpu] = raw[7] - total[cpu];
+						previousTotal[cpu] = total[cpu];
+						total[cpu] = raw[7];
 						for(int c=0; opened && c<7; c++){
-							rawData[cpu][c] = 100*raw[c] - rawData[cpu][c];
-							data[cpu][c] = ((float)rawData[cpu][c])/((float)total[cpu]);
+							rawPreviousData[cpu][c] = rawData[cpu][c];
+							rawData[cpu][c] = raw[c];
+							data[cpu][c] = 100*((float)(rawPreviousData[cpu][c] - rawData[cpu][c]))/((float)(previousTotal[cpu] - total[cpu]));
 						}
+						line = reader.readLine();
 					}
 				}
 				Thread.sleep(250);
