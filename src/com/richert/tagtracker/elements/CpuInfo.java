@@ -74,6 +74,7 @@ public class CpuInfo implements Runnable{
 		} catch (FileNotFoundException e) {
 	       	Log.e(TAG, "can't read /proc/stat!");
 			reader = null;
+			opened = false;
 		}
 	}
 	
@@ -197,27 +198,31 @@ public class CpuInfo implements Runnable{
 		while(opened){
 			String line = "";
 			try{
-	        	reader.seek(0);
-				line = reader.readLine();
-				if(opened && line.startsWith("cpu")){
-					long raw[] = parseLine(line);
-					previousTotal[cpuNum] = total[cpuNum];
-					total[cpuNum] = raw[7];
-					for(int c=0; opened && c<7; c++){
-						rawPreviousData[cpuNum][c] = rawData[cpuNum][c];
-						rawData[cpuNum][c] = raw[c];
-						data[cpuNum][c] = 100*((float)(rawPreviousData[cpuNum][c] - rawData[cpuNum][c]))/((float)(previousTotal[cpuNum] - total[cpuNum]));
-						synchronized(queue){
-							if(opened && queue.size() >= window){
-								queue.poll();
-							}
-							queue.add(data[cpuNum].clone());
-						}
-					}
+	        	if(opened){
+		        	reader.seek(0);
 					line = reader.readLine();
-				}
+					if(line.startsWith("cpu")){
+						long raw[] = parseLine(line);
+						previousTotal[cpuNum] = total[cpuNum];
+						total[cpuNum] = raw[7];
+						for(int c=0; opened && c<7; c++){
+							rawPreviousData[cpuNum][c] = rawData[cpuNum][c];
+							rawData[cpuNum][c] = raw[c];
+							data[cpuNum][c] = 100*((float)(rawPreviousData[cpuNum][c] - rawData[cpuNum][c]))/((float)(previousTotal[cpuNum] - total[cpuNum]));
+							synchronized(queue){
+								if(opened){
+									if(queue.size() >= window){
+										queue.poll();
+									}
+									queue.add(data[cpuNum].clone());
+								}
+							}
+						}
+						line = reader.readLine();
+					}
+	        	}
 				for(int cpu=0; opened && cpu<cpuNum; cpu++){
-					if(opened && line.startsWith("cpu"+cpu)){
+					if(line.startsWith("cpu"+cpu)){
 						long raw[] = parseLine(line);
 						previousTotal[cpu] = total[cpu];
 						total[cpu] = raw[7];
@@ -226,12 +231,14 @@ public class CpuInfo implements Runnable{
 							rawData[cpu][c] = raw[c];
 							data[cpu][c] = 100*((float)(rawPreviousData[cpu][c] - rawData[cpu][c]))/((float)(previousTotal[cpu] - total[cpu]));
 						}
-						line = reader.readLine();
+						if(opened){
+							line = reader.readLine();
+						}
 					}
 				}
 				Thread.sleep(250);
 				
-			}catch(IOException e){} catch (InterruptedException e) {}
+			}catch(IOException e){} catch (InterruptedException e) {} catch(NullPointerException e) {}
 			
 		}
 	}

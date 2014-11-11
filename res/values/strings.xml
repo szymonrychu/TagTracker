@@ -7,14 +7,14 @@
     <string name="main_action_licences">Licencje</string>
     <string name="main_mode_select_desc_str">Wybierz tryb działania:</string>
     <string name="butt_main_calibrate_str">Skalibruj telefon</string>
-    <string name="butt_main_recognize_str">Rozpoznaj tagi</string>
+    <string name="butt_main_recognize_str">Rozpoznaj Markery</string>
     <string name="title_activity_recognize">Rozpoznawacz</string>
     <string name="recognize_button_screenshot">Zrzut Ekranu</string>
     <string name="title_activity_calibrate">Kalibrator</string>
     <string name="recognize_action_resolution">Rozdzielczość</string>
     <string name="resolution_dialog_ok">OK</string>
-    <string name="title_activity_marker_generator">Generator Markerów</string>
-    <string name="butt_main_generate_str">Generuj Tagi</string>
+    <string name="title_activity_marker_generator">Podgląd Markerów</string>
+    <string name="butt_main_generate_str">Podglądaj Markery</string>
     <string name="title_activity_about">Autor aplikacji</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_licences">Postanowania Licencyjne</string>

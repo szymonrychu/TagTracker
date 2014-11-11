@@ -164,7 +164,6 @@ public class CameraDrawerPreview extends ViewGroup {
 		Bitmap bmp = Misc.mat2Bitmap(Misc.yuv2Rgb(yuvFrame, rotation));
 		if(cameraProcessingCallback != null){
 			Canvas canvas = new Canvas(bmp);
-			
 			cameraProcessingCallback.drawOnCamera(canvas, scaleX, scaleY);
 		}
 		return bmp;
@@ -272,8 +271,6 @@ public class CameraDrawerPreview extends ViewGroup {
 	        try {
 				camera.setPreviewDisplay(this.surfaceHolder);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 		@Override

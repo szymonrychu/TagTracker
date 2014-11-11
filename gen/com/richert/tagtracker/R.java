@@ -96,12 +96,12 @@ containing a value of this type.
     }
     public static final class id {
         public static final int RelativeLayout1=0x7f05000b;
-        public static final int action_settings=0x7f050012;
         public static final int any=0x7f050000;
         public static final int back=0x7f050001;
         public static final int butt_main_driver=0x7f050008;
         public static final int butt_main_marker_gen=0x7f050009;
         public static final int butt_main_recognize=0x7f050007;
+        public static final int drive_action_debug=0x7f050012;
         public static final int driver_driverView=0x7f050005;
         public static final int driver_imageView=0x7f050003;
         public static final int front=0x7f050002;

@@ -13,7 +13,7 @@ JNIEXPORT jobject JNICALL Java_com_richert_tagtracker_natUtils_Misc_yuvToRgbNtv(
     cvtColor(mYuv,mRGB,COLOR_YUV2RGB_NV21);
     jobject jMat = env->NewObject(jMatCls,jMatConsID);
     Mat&cMat=*(Mat*)env->CallLongMethod(jMat,jMatGetNatAddr);
-    rotateMat(mRGB,rotation+1);
+    rotateMat(mRGB,rotation);
     cMat = mRGB;
     return jMat;
 }

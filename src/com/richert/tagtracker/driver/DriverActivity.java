@@ -46,6 +46,7 @@ public class DriverActivity extends FullScreenActivity implements Callback, Runn
 	private Paint paint;
 	private ControlsHelper controlsHelper;
 	private DriverHelper driverHelper;
+	private Boolean showDebug;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -62,7 +63,7 @@ public class DriverActivity extends FullScreenActivity implements Callback, Runn
 		paint.setColor(Color.RED);
 		controlsHelper = new ControlsHelper(driverView);
 		controlsHelper.setControlsCallback(this);
-		
+		showDebug = false;
 	}
 	void drawControls(Canvas canvas){
 		
@@ -93,7 +94,9 @@ public class DriverActivity extends FullScreenActivity implements Callback, Runn
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
+		if (id == R.id.drive_action_debug) {
+			item.setChecked(! item.isChecked());
+			showDebug = item.isChecked();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -131,10 +134,12 @@ public class DriverActivity extends FullScreenActivity implements Callback, Runn
 	}
 
 	public void redraw(Canvas canvas){
+		if(showDebug){
+			float Y = 50;
+			canvas.drawText("Status: "+driverHelper.getState(), 50, Y+=50, paint);
+			canvas.drawText("Driver buffer: " + driverHelper.getBuffer(), 50, Y+=50, paint);
+		}
 		controlsHelper.drawControls(canvas);
-		float Y = 50;
-		canvas.drawText("Status: "+driverHelper.getState(), 50, Y+=50, paint);
-		canvas.drawText("Driver buffer: " + driverHelper.getBuffer(), 50, Y+=50, paint);
 	}
 	@Override
 	public void run() {

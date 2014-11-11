@@ -34,5 +34,4 @@ public class Misc {
 		}
 		return bmp;
 	}
-	
 }

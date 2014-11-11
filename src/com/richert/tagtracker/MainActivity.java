@@ -28,6 +28,7 @@ public class MainActivity extends Activity implements Runnable{
 	private String action, preferedActivity;
 	private OfflineDataHelper dbHelper;
 	private String driverSimpleName, recognizeSimpleName;
+	private Boolean latch;
 	public MainActivity() {
 		this.context = this;
 	}
@@ -42,15 +43,11 @@ public class MainActivity extends Activity implements Runnable{
 		recognizeButton = (Button) findViewById(R.id.butt_main_recognize);
 		driverButton = (Button) findViewById(R.id.butt_main_driver);
 		generateButton = (Button) findViewById(R.id.butt_main_marker_gen);
+		latch = false;
 	}
 	
 	@Override
 	protected void onResume() {
-		action = getIntent().getAction();
-		if(action.contentEquals(UsbManager.ACTION_USB_DEVICE_ATTACHED)){
-			Handler h = new Handler();
-			h.post(this);
-		}
 		recognizeButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -78,6 +75,17 @@ public class MainActivity extends Activity implements Runnable{
 			}
 		});
 		super.onResume();
+	}
+	@Override
+	protected void onPostResume() {
+		if(!latch){
+			action = getIntent().getAction();
+			if(action.contentEquals(UsbManager.ACTION_USB_DEVICE_ATTACHED)){
+				Handler h = new Handler();
+				h.post(this);
+			}
+		}
+		super.onPostResume();
 	}
 	@Override
 	protected void onPause() {
@@ -119,6 +127,7 @@ public class MainActivity extends Activity implements Runnable{
 	}
 	@Override
 	public void run() {
+		latch = true;
 		preferedActivity = dbHelper.loadPreferedActivity();
 		//Intent.ACTION_MAIN
 		//UsbManager.ACTION_USB_DEVICE_ATTACHED
@@ -126,13 +135,20 @@ public class MainActivity extends Activity implements Runnable{
 			if(preferedActivity.contentEquals(recognizeSimpleName)){
 				Intent recognize = new Intent(context,RecognizeActivity.class);
 				recognize.putExtra(INTENT_EXTRA, action);
-				startActivity(recognize);
+				startActivityForResult(recognize, 0);
+				onPause();
 			}else if(preferedActivity.contentEquals(driverSimpleName)){
 				Intent drive = new Intent(context,DriverActivity.class);
 				drive.putExtra(INTENT_EXTRA, action);
-				startActivity(drive);
+				startActivityForResult(drive, 0);
+				onPause();
 			}
 		}catch ( Exception e){}
 	}
-	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		latch = true;
+		action = Intent.ACTION_MAIN;
+		super.onActivityResult(requestCode, resultCode, data);
+	}
 }
