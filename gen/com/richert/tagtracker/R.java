@@ -116,9 +116,10 @@ containing a value of this type.
         public static final int marker_text_view=0x7f05000d;
         public static final int markergen_listview=0x7f05000a;
         public static final int othercode_text_view=0x7f05000e;
-        public static final int recognize_action_debug=0x7f050019;
+        public static final int recognize_action_debug=0x7f05001a;
         public static final int recognize_action_resolution=0x7f050017;
         public static final int recognize_action_set_tag=0x7f050018;
+        public static final int recognize_action_set_threads=0x7f050019;
         public static final int recognize_preview=0x7f050010;
         public static final int screenshot_button=0x7f050011;
     }
@@ -159,6 +160,7 @@ containing a value of this type.
         public static final int recognize_action_debug=0x7f08001b;
         public static final int recognize_action_resolution=0x7f08000a;
         public static final int recognize_action_set_tag=0x7f08001a;
+        public static final int recognize_action_set_threads=0x7f08001d;
         public static final int recognize_button_screenshot=0x7f080008;
         public static final int resolution_dialog_ok=0x7f08000b;
         public static final int title_activity_about=0x7f08000e;

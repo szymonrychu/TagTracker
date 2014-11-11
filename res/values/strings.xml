@@ -30,5 +30,6 @@
     <string name="recognize_action_set_tag">Ustaw tag</string>
     <string name="recognize_action_debug">Statystyki</string>
     <string name="main_action_othercode">Inne kody źródłowe</string>
+    <string name="recognize_action_set_threads">Wątki</string>
 
 </resources>

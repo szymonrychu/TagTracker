@@ -25,6 +25,7 @@ public class CpuInfo implements Runnable{
 	private float[][] data;
 	private long[][] rawData;
 	private long[][] rawPreviousData;
+	private int[] frequency;
 	private long total[];
 	private long previousTotal[];
 	private static final String[] legend = {"user", "nice", "system", "idle", "iowait", "irq", "sirq"};
@@ -85,6 +86,8 @@ public class CpuInfo implements Runnable{
 		StringBuilder sb = new StringBuilder();
 		sb.append("cpu");
 		sb.append(coreNum);
+		sb.append(":freq:");
+		sb.append(frequency[coreNum]);
 		for(int c=0; c<7; c++){
 			sb.append(":");
 			sb.append(legend[c]);
@@ -193,6 +196,30 @@ public class CpuInfo implements Runnable{
 		data[7] = total;
 		return data;
 	}
+	private int[] getCurrentCPUFreqs(){
+		int result[] = new int[cpuNum];
+		for(int c=0; opened && c< cpuNum; c++){
+			result[c] = 0;
+ 			String raw = null;
+			StringBuilder cpuPath = new StringBuilder();
+			cpuPath.append("/sys/devices/system/cpu/cpu");
+			cpuPath.append(c);
+			cpuPath.append("/cpufreq/scaling_cur_freq");
+			try {
+				RandomAccessFile cpuFreqReader = new RandomAccessFile(cpuPath.toString(), "r");
+				raw = cpuFreqReader.readLine();
+				cpuFreqReader.close();
+			} catch (FileNotFoundException e) {
+		       	Log.e(TAG, "can't open " + cpuPath.toString());
+			} catch (IOException e){
+		       	Log.e(TAG, "can't read " + cpuPath.toString());
+			}
+			if(raw != null){
+				result[c] = Integer.parseInt(raw);
+			}
+		}
+		return result;
+	}
 	@Override
 	public void run() {
 		while(opened){
@@ -236,6 +263,7 @@ public class CpuInfo implements Runnable{
 						}
 					}
 				}
+				frequency = getCurrentCPUFreqs();
 				Thread.sleep(250);
 				
 			}catch(IOException e){} catch (InterruptedException e) {} catch(NullPointerException e) {}

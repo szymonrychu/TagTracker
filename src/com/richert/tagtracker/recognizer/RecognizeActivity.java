@@ -32,6 +32,7 @@ import com.richert.tagtracker.elements.CameraDrawerPreview.CameraProcessingCallb
 import com.richert.tagtracker.elements.CameraDrawerPreview.CameraSetupCallback;
 import com.richert.tagtracker.elements.TextToSpeechToText;
 import com.richert.tagtracker.elements.TextToSpeechToText.SpeechToTextListener;
+import com.richert.tagtracker.elements.ThreadDialog;
 import com.richert.tagtracker.geomerty.Tag;
 import com.richert.tagtracker.markergen.MarkerGeneratorActivity;
 import com.richert.tagtracker.natUtils.Misc;
@@ -97,6 +98,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
         preview = (CameraDrawerPreview) findViewById(R.id.recognize_preview);
         preview.setCameraSetupCallback(this);
         preview.setCameraProcessingCallback(this);
+        preview.setMaxThreads(2);
 		helper = new OfflineDataHelper(this);
 		screenshotButton = (Button) findViewById(R.id.screenshot_button);
 		screenshotButton.setOnClickListener(new OnClickListener() {
@@ -212,6 +214,15 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 				}
 			};
 			tagDialog.show(getFragmentManager(), "tagz");
+			return true;
+		case R.id.recognize_action_set_threads:
+			ThreadDialog threadDialog = new ThreadDialog(8) {
+				@Override
+				public void onListItemClick(DialogInterface dialog, Integer num) {
+			        preview.setMaxThreads(num);
+				}
+			};
+			threadDialog.show(getFragmentManager(), "threadz");
 			return true;
 		case R.id.recognize_action_debug:
 			item.setChecked(! item.isChecked());
