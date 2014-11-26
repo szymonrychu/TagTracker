@@ -18,5 +18,13 @@
 		android:id="@+id/recognize_action_debug"
         android:orderInCategory="100"
 		android:title="@string/recognize_action_debug" android:checked="false" android:checkable="true"/>
+    <item
+		android:id="@+id/recognize_action_graph"
+        android:orderInCategory="100"
+		android:title="@string/recognize_action_graph" android:checked="false" android:checkable="true"/>
+    <item
+		android:id="@+id/recognize_force_speaking"
+        android:orderInCategory="100"
+		android:title="@string/recognizer_force_speaking" android:checked="false" android:checkable="true"/>
 
 </menu>

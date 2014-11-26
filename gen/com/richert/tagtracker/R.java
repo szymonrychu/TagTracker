@@ -117,9 +117,11 @@ containing a value of this type.
         public static final int markergen_listview=0x7f05000a;
         public static final int othercode_text_view=0x7f05000e;
         public static final int recognize_action_debug=0x7f05001a;
+        public static final int recognize_action_graph=0x7f05001b;
         public static final int recognize_action_resolution=0x7f050017;
         public static final int recognize_action_set_tag=0x7f050018;
         public static final int recognize_action_set_threads=0x7f050019;
+        public static final int recognize_force_speaking=0x7f05001c;
         public static final int recognize_preview=0x7f050010;
         public static final int screenshot_button=0x7f050011;
     }
@@ -158,10 +160,12 @@ containing a value of this type.
         public static final int main_action_othercode=0x7f08001c;
         public static final int main_mode_select_desc_str=0x7f080004;
         public static final int recognize_action_debug=0x7f08001b;
+        public static final int recognize_action_graph=0x7f08001e;
         public static final int recognize_action_resolution=0x7f08000a;
         public static final int recognize_action_set_tag=0x7f08001a;
         public static final int recognize_action_set_threads=0x7f08001d;
         public static final int recognize_button_screenshot=0x7f080008;
+        public static final int recognizer_force_speaking=0x7f08001f;
         public static final int resolution_dialog_ok=0x7f08000b;
         public static final int title_activity_about=0x7f08000e;
         public static final int title_activity_calibrate=0x7f080009;

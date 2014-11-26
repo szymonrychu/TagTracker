@@ -22,10 +22,10 @@ public class CpuInfo implements Runnable{
 	private static final String TAG = CpuInfo.class.getSimpleName();
 	private int cpuNum = 0;
 	private Queue<float[]> queue;
-	private float[][] data;
+	protected float[][] data;
 	private long[][] rawData;
 	private long[][] rawPreviousData;
-	private int[] frequency;
+	protected int[] frequency;
 	private long total[];
 	private long previousTotal[];
 	private static final String[] legend = {"user", "nice", "system", "idle", "iowait", "irq", "sirq"};
@@ -210,9 +210,9 @@ public class CpuInfo implements Runnable{
 				raw = cpuFreqReader.readLine();
 				cpuFreqReader.close();
 			} catch (FileNotFoundException e) {
-		       	Log.e(TAG, "can't open " + cpuPath.toString());
+		       	//Log.e(TAG, "can't open " + cpuPath.toString());
 			} catch (IOException e){
-		       	Log.e(TAG, "can't read " + cpuPath.toString());
+		       	//Log.e(TAG, "can't read " + cpuPath.toString());
 			}
 			if(raw != null){
 				result[c] = Integer.parseInt(raw);

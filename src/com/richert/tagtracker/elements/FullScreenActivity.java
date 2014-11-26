@@ -11,6 +11,7 @@ import android.view.View;
 public abstract class FullScreenActivity extends Activity{
 	private View decorView;
 	private ActionBar actionBar;
+	private int delayTime = 5000;
 	/**
 	 * Method called everytime, when system bars are visible.
 	 */
@@ -38,7 +39,7 @@ public abstract class FullScreenActivity extends Activity{
 								hideSystemUI();
 						    	actionBar.hide();
 							}
-						}, 2000);
+						}, delayTime);
 				    	onSystemBarsVisible();
 				    } else {
 				    	onSystemBarsHided();

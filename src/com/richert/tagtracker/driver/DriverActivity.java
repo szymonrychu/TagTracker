@@ -35,7 +35,7 @@ import android.view.View;
 import android.view.View.OnGenericMotionListener;
 import android.view.View.OnTouchListener;
 
-public class DriverActivity extends FullScreenActivity implements Callback, Runnable, ControlsHelper.ControlsCallback {
+public class DriverActivity extends Activity implements Callback, Runnable, ControlsHelper.ControlsCallback {
 	private String TAG = DriverActivity.class.getSimpleName();
 	private SurfaceView driverView;
 	private SurfaceHolder holder;
@@ -63,6 +63,7 @@ public class DriverActivity extends FullScreenActivity implements Callback, Runn
 		paint.setColor(Color.RED);
 		controlsHelper = new ControlsHelper(driverView);
 		controlsHelper.setControlsCallback(this);
+		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
 		showDebug = false;
 	}
 	void drawControls(Canvas canvas){
@@ -70,7 +71,7 @@ public class DriverActivity extends FullScreenActivity implements Callback, Runn
 	}
 	@Override
 	protected void onResume() {
-		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
+		driverHelper.startMonitor(this);
 		super.onResume();
 	}
 	@Override
@@ -137,6 +138,7 @@ public class DriverActivity extends FullScreenActivity implements Callback, Runn
 		if(showDebug){
 			float Y = 50;
 			canvas.drawText("Status: "+driverHelper.getState(), 50, Y+=50, paint);
+			canvas.drawText("Device: "+driverHelper.getDeviceInfo(), 50, Y+=50, paint);
 			canvas.drawText("Driver buffer: " + driverHelper.getBuffer(), 50, Y+=50, paint);
 		}
 		controlsHelper.drawControls(canvas);
@@ -158,18 +160,6 @@ public class DriverActivity extends FullScreenActivity implements Callback, Runn
 	}
 
 
-	@Override
-	protected void onSystemBarsVisible() {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	protected void onSystemBarsHided() {
-		// TODO Auto-generated method stub
-		
-	}
 	
 	@Override
 	public void getPivotPosition(float procX, float procY) {

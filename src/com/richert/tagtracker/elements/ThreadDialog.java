@@ -15,17 +15,20 @@ import android.os.Bundle;
 
 public abstract class ThreadDialog extends DialogFragment{
 	List<String> texts = null;
-	List<Integer> tagList = null;
+	List<Integer> threadList = null;
 	public ThreadDialog(int stop) {
-		tagList = new ArrayList<Integer>();
+		threadList = new ArrayList<Integer>();
 		texts = new ArrayList<String>();
 		for(int c = 1; c <= stop; c++){
-			tagList.add(c);
+			threadList.add(c);
 			StringBuilder builder = new StringBuilder();
 			builder.append(c);
-			builder.append(" threads");
+			builder.append(" w¹tki");
 			texts.add(builder.toString());
 		}
+
+		threadList.add(-1);
+		texts.add("Bez limitu");
 		
 	}
 	/**
@@ -41,7 +44,7 @@ public abstract class ThreadDialog extends DialogFragment{
 		builder.setItems(texts.toArray(new String[texts.size()]), new OnClickListener(){
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				onListItemClick(dialog, tagList.get(which));
+				onListItemClick(dialog, threadList.get(which));
 			}
 		});
 		return builder.create();

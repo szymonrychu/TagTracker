@@ -3,6 +3,7 @@ package com.richert.tagtracker.driver;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -22,99 +23,87 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
 	private volatile UsbEndpoint outEndpoint;
     private UsbDeviceConnection usbConnection;
     private UsbDevice usbDevice;
-    public Boolean transreceive = false;
     private Thread worker;
     private int timeoutMs = 100;
     private int bufferSize = 3;
     private UsbManager usbManager;
     private Context context;
 	private Boolean sending = false;
-	private int steerMax = 240;
-	private int steerMin = 115;
-	private int pivotMax = 240;
-	private int pivotMin = 115;
-    private float prevX;
-    private float prevY;
-    private String buffer = "";
+	private int steerMax = 250;
+	private int steerMin = 130;
+	private int pivotMax = 250;
+	private int pivotMin = 50;
+    private String buffer = "177,177,000,000,000,000";
+    private int maxVals = 6;
+    private Boolean work = true;
+    private Thread monitor;
     public DriverHelper(Context context, UsbManager usbManager){
     	this.context = context;
     	this.usbManager = usbManager;
-    	IntentFilter filter = new IntentFilter();
-    	filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-    	context.registerReceiver(this, filter);
-    	transreceive = findDevice(usbManager);
+    	this.usbManager = usbManager;
+        
+		StringBuilder sb = new StringBuilder();
+		for(int c=0;c<maxVals;c++){
+			sb.append(String.format("%03d,", 0));
+		}
+		buffer = sb.toString();
     }
     public void unregisterReceiver(){
-    	context.unregisterReceiver(this);
+    	try{
+        	work = false;
+    		if(worker != null){
+				worker.join();
+    		}
+    		context.unregisterReceiver(this);
+			monitor.join();
+    	}catch(Exception e ){}
+    	
     }
     public void steer(final float procX, final float procY, final float procZ){
-    	if((prevX != procX || prevY != procY) && !sending){
-    		Thread th = new Thread(){
-				@Override
-				public void run() {
-					sending = true;
-					prevX = procX;
-					prevY = procY;
-					int steer, lFront, lBack, rFront, rBack, pivot;
-					int steerCenter = (steerMax - steerMin)/2 + steerMin;
-					int pivotCenter = (pivotMax - pivotMin)/2 + pivotMin;
-					steer = steerCenter + (int)(procX*((steerMax - steerMin)/2));
-					pivot = pivotCenter + (int)(procZ*((pivotMax - pivotMin)/2));
-			
-					lBack = procY > 0 ? procX > 0 ? (int)(procY*255) : Math.max((int)(procY*255)+(int)(procX*50),0) : 0;//leftT
-					lFront = procY < 0 ? procX > 0 ? -(int)(procY*255) : Math.max(-(int)(procY*255)+(int)(procX*50),0) : 0;//leftP
-					rBack = procY > 0 ? procX < 0 ? (int)(procY*255) : Math.max((int)(procY*255)-(int)(procX*50),0) : 0;//rightT
-					rFront = procY < 0 ? procX < 0 ? -(int)(procY*255) : Math.max(-(int)(procY*255)-(int)(procX*50),0) : 0;//rightP
-					StringBuilder sb = new StringBuilder();
-					sb.append(String.format("%03d,", steer));
-					sb.append(String.format("%03d,", pivot));
-					sb.append(String.format("%03d,", lFront));
-					sb.append(String.format("%03d,", lBack));
-					sb.append(String.format("%03d,", rFront));
-					sb.append(String.format("%03d,", rBack));
-					buffer = sb.toString();
-					if(usbConnection!=null && outEndpoint != null)	{
-						usbConnection.bulkTransfer(outEndpoint, buffer.getBytes(), buffer.getBytes().length, timeoutMs);
-					}
-					
-					try {
-						Thread.sleep(10);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					sending=false;
-					super.run();
-				}
-			};
-			th.start();
-			
-    	}
+		int steerings[] = new int[6];
+		int steerCenter = (steerMax - steerMin)/2 + steerMin;
+		int pivotCenter = (pivotMax - pivotMin)/2 + pivotMin;
+		steerings[0] = steerCenter + (int)(procX*((steerMax - steerMin)/2));
+		steerings[1] = pivotCenter - (int)(procZ*((pivotMax - pivotMin)/2));
+		if(steerings[0] < steerMin){
+			steerings[0] = steerMin;
+		}
+		if(steerings[0] > steerMax){
+			steerings[0] = steerMax;
+		}
+		if(steerings[1] < pivotMin){
+			steerings[1] = pivotMin;
+		}
+		if(steerings[1] > pivotMax){
+			steerings[1] = pivotMax;
+		}
+		int maxValue = 200;
+		steerings[2] = procY > 0 ? procX > 0 ? (int)(procY*maxValue) : Math.max((int)(procY*maxValue)+(int)(procX*50),0) : 0;//leftT
+		steerings[3] = procY < 0 ? procX > 0 ? -(int)(procY*maxValue) : Math.max(-(int)(procY*maxValue)+(int)(procX*50),0) : 0;//leftP
+		steerings[4] = procY > 0 ? procX < 0 ? (int)(procY*maxValue) : Math.max((int)(procY*maxValue)-(int)(procX*50),0) : 0;//rightT
+		steerings[5] = procY < 0 ? procX < 0 ? -(int)(procY*maxValue) : Math.max(-(int)(procY*maxValue)-(int)(procX*50),0) : 0;//rightP
+		
+		
+		
+		StringBuilder sb = new StringBuilder();
+		for(int steer : steerings){
+			sb.append(String.format("%03d,", steer));
+		}
+		buffer = sb.toString();
     }
     public String getBuffer(){
     	return buffer;
     }
+    public Boolean transreceiving(){
+    	return usbConnection != null;
+    }
     @Override
 	public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) { 
-        	transreceive = findDevice(usbManager);
-        	if(!transreceive){
-		    	try {
-		    		if(worker != null){
-						worker.join();
-		    		}
-				} catch (InterruptedException e) {
-				}
-        	}
+        if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+        	work = true;
         }else if(UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)){
-        	if(!transreceive){
-            	transreceive = findDevice(usbManager);
-            	if(transreceive){
-		        	worker = new Thread(this);
-		        	worker.start();
-            	}
-        	}
+        	work = true;
         }
         
     }
@@ -127,109 +116,47 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
     }
     public String getState(){
     	StringBuilder sb = new StringBuilder();
-    	sb.append("device:");
+    	sb.append(" device=");
     	sb.append(checkIfNull(usbDevice));
-    	sb.append(":connection:");
+    	sb.append(" connection=");
     	sb.append(checkIfNull(usbConnection));
-    	sb.append(":inEndpoint:");
+    	sb.append(" inEndpoint=");
     	sb.append(checkIfNull(inEndpoint));
-    	sb.append(":outEndpoint:");
+    	sb.append(" outEndpoint=");
     	sb.append(checkIfNull(outEndpoint));
     	return sb.toString();
     }
-	private Boolean findDevice(UsbManager usbManager) {
-        HashMap<String, UsbDevice> usbDeviceList = usbManager.getDeviceList();
-        Iterator<UsbDevice> deviceIterator = usbDeviceList.values().iterator();
-        usbDevice = null;
-        if (deviceIterator.hasNext()) {
-            usbDevice = deviceIterator.next();
-
-            // Print device information. If you think your device should be able
-            // to communicate with this app, add it to accepted products below.
-            Log.d(TAG, "VendorId: " + usbDevice.getVendorId());
-            Log.d(TAG, "ProductId: " + usbDevice.getProductId());
-            Log.d(TAG, "DeviceName: " + usbDevice.getDeviceName());
-            Log.d(TAG, "DeviceId: " + usbDevice.getDeviceId());
-            Log.d(TAG, "DeviceClass: " + usbDevice.getDeviceClass());
-            Log.d(TAG, "DeviceSubclass: " + usbDevice.getDeviceSubclass());
-            Log.d(TAG, "InterfaceCount: " + usbDevice.getInterfaceCount());
-            Log.d(TAG, "DeviceProtocol: " + usbDevice.getDeviceProtocol());
-
-            
-        }
-        if (usbDevice == null) {
-            return false;
-        } else {
-            usbConnection = usbManager.openDevice(usbDevice);
-            if(usbConnection== null){
-            	return false;
-            }
-            UsbInterface usbInterface = usbDevice.getInterface(1);
-            if(!usbConnection.claimInterface(usbInterface, true)){
-            	usbConnection.close();
-            	usbConnection = null;
-            	return false;
-            }
-
-            /*connection.controlTransfer(0x21, 34, 0, 0, null, 0, 0);
-            connection.controlTransfer(0x21, 32, 0, 0, new byte[] { (byte) 0x80,
-                    0x25, 0x00, 0x00, 0x00, 0x00, 0x08 }, 7, 0);
-            connection.controlTransfer(0x40, 0x03, 0x4138, 0, null, 0, 0); //Baudrate 9600*/
-            
-
-            final int RQSID_SET_LINE_CODING = 0x20;
-            final int RQSID_SET_CONTROL_LINE_STATE = 0x22;
-            
-            
-            int usbResult;
-            usbResult = usbConnection.controlTransfer(
-              0x21,        //requestType
-              RQSID_SET_CONTROL_LINE_STATE, //SET_CONTROL_LINE_STATE 
-              0,     //value
-              0,     //index
-              null,    //buffer
-              0,     //length
-              0);    //timeout
-            //baud rate = 9600
-            //8 data bit
-            //1 stop bit
-            byte[] encodingSetting = 
-              new byte[] {(byte)0x80, 0x25, 0x00, 0x00, 0x00, 0x00, 0x08 };
-            usbResult = usbConnection.controlTransfer(
-              0x21,       //requestType
-              RQSID_SET_LINE_CODING,   //SET_LINE_CODING
-              0,      //value
-              0,      //index
-              encodingSetting,  //buffer
-              7,      //length
-              0);     //timeout
-            
-            
-            
-            
-            for (int i = 0; i < usbInterface.getEndpointCount(); i++) {
-                if (usbInterface.getEndpoint(i).getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
-                    if (usbInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN) {
-                        inEndpoint = usbInterface.getEndpoint(i);
-                    } else if (usbInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_OUT) {
-                        outEndpoint = usbInterface.getEndpoint(i);
-                    }
-                }
-            }
-            
-            if (inEndpoint == null) {
-                Log.e(TAG, "No in endpoint found!");
-                usbConnection.close();
-                return false;
-            }
-
-            if (outEndpoint == null) {
-                Log.e(TAG, "No out endpoint found!");
-                usbConnection.close();
-                return false;
-            }
-        }
-        return true;
+    public String getDeviceInfo(){
+    	StringBuilder sb = new StringBuilder();
+		sb.append("");
+    	if(usbDevice != null){
+    		sb.append("VId=");
+    		sb.append(usbDevice.getVendorId());
+    		sb.append(" PId=");
+            sb.append(usbDevice.getProductId());
+            sb.append(" DId=");
+            sb.append(usbDevice.getDeviceId());
+            sb.append(" DevN=");
+            sb.append(usbDevice.getDeviceName());
+            sb.append(" DPr=");
+            sb.append(usbDevice.getDeviceProtocol());
+            sb.append(" DCls=");
+            sb.append(usbDevice.getDeviceClass());
+            sb.append(" DScls=");
+            sb.append(usbDevice.getDeviceSubclass());
+            sb.append(" IntrfC=");
+            sb.append(usbDevice.getInterfaceCount());
+    	}
+    	return sb.toString();
+    }
+    public void startMonitor(Context context){
+    	IntentFilter filter = new IntentFilter();
+    	filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+    	filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+    	this.context.registerReceiver(this, filter);
+    	work = true;
+    	worker = new Thread(this);
+    	worker.start();
     }
     private byte[] getLineEncoding(int baudRate) {
         final byte[] lineEncodingRequest = { (byte) 0x80, 0x25, 0x00, 0x00, 0x00, 0x00, 0x08 };
@@ -249,38 +176,91 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
     }
 	@Override
 	public void run() {
-		while(transreceive){
-			byte[] outBuffer = null;
-			if(!sending){
-				byte[] inBuffer = new byte[bufferSize];
-				receive(inBuffer);
+		while(work){
+			if(usbDevice != null && usbConnection != null && inEndpoint != null && outEndpoint != null){
+				usbConnection.bulkTransfer(outEndpoint, buffer.getBytes(), buffer.getBytes().length, timeoutMs);
+	        }else{
+	        	usbDevice = null;
+	        	usbConnection = null;
+	        	inEndpoint = null;
+	        	outEndpoint = null;
+	        	HashMap<String, UsbDevice> usbDeviceList = usbManager.getDeviceList();
+		        Iterator<UsbDevice> deviceIterator = usbDeviceList.values().iterator();
+		        if (deviceIterator.hasNext()) {
+		            usbDevice = deviceIterator.next();
+		        }
+		        if (usbDevice != null)  {
+	        		//usbManager.requestPermission(usbDevice, pendIntent);
+		            usbConnection = usbManager.openDevice(usbDevice);
+		            if(usbConnection != null){
+		            	UsbInterface usbInterface = usbDevice.getInterface(1);
+			            if(!usbConnection.claimInterface(usbInterface, true)){
+			            	usbConnection.close();
+			            	usbConnection = null;
+			            }else{
+			            	final int RQSID_SET_LINE_CODING = 0x20;
+				            final int RQSID_SET_CONTROL_LINE_STATE = 0x22;
+				            
+				            
+				            int usbResult;
+				            usbResult = usbConnection.controlTransfer(
+				              0x21,        //requestType
+				              RQSID_SET_CONTROL_LINE_STATE, //SET_CONTROL_LINE_STATE 
+				              0,     //value
+				              0,     //index
+				              null,    //buffer
+				              0,     //length
+				              0);    //timeout
+				            //baud rate = 9600
+				            //8 data bit
+				            //1 stop bit
+				            byte[] encodingSetting = 
+				              new byte[] {(byte)0x80, 0x25, 0x00, 0x00, 0x00, 0x00, 0x08 };
+				            usbResult = usbConnection.controlTransfer(
+				              0x21,       //requestType
+				              RQSID_SET_LINE_CODING,   //SET_LINE_CODING
+				              0,      //value
+				              0,      //index
+				              encodingSetting,  //buffer
+				              7,      //length
+				              0);     //timeout
+				            
+				            
+				            
+				            
+				            for (int i = 0; i < usbInterface.getEndpointCount(); i++) {
+				                if (usbInterface.getEndpoint(i).getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
+				                    if (usbInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN) {
+				                        inEndpoint = usbInterface.getEndpoint(i);
+				                    } else if (usbInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_OUT) {
+				                        outEndpoint = usbInterface.getEndpoint(i);
+				                    }
+				                }
+				            }
+				            
+				            if (inEndpoint == null || outEndpoint == null) {
+				                Log.e(TAG, "No endpoint found!");
+				                usbConnection.close();
+				                usbConnection = null;
+				            }
+			            }
+		            }
+					
+		        }
+	        }
+        	try {
+	        	Thread.sleep(timeoutMs);
+			} catch (InterruptedException e) {
 			}
+			
 		}
 	}
-	/*public void send(final byte[] buffer){
-		if(usbConnection!=null && outEndpoint != null && buffer != null && !sending){
-			Thread th = new Thread(){
-				@Override
-				public void run() {
-					sending = true;
-					usbConnection.bulkTransfer(outEndpoint, buffer, buffer.length, timeoutMs);
-					try {
-						Thread.sleep(10);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					sending=false;
-					super.run();
-				}
-			};
-			th.start();
-		}
-	}*/
-	protected void receive(byte[] buffer){
+	protected byte[] receive(byte[] buffer){
+		byte[] inBuffer = new byte[bufferSize];
 		if(usbConnection!=null && inEndpoint != null){
-			usbConnection.bulkTransfer(inEndpoint, buffer, buffer.length, timeoutMs);
+			usbConnection.bulkTransfer(inEndpoint, inBuffer, bufferSize, timeoutMs);
 		}
+		return inBuffer;
 	}
 
     public static int byte2int(byte[] arr){

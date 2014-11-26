@@ -31,5 +31,7 @@
     <string name="recognize_action_debug">Statystyki</string>
     <string name="main_action_othercode">Inne kody źródłowe</string>
     <string name="recognize_action_set_threads">Wątki</string>
+    <string name="recognize_action_graph">Wykres CPU</string>
+    <string name="recognizer_force_speaking">Wymuś mówienie</string>
 
 </resources>

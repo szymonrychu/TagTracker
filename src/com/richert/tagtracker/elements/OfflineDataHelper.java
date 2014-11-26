@@ -2,10 +2,17 @@ package com.richert.tagtracker.elements;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+
+import com.richert.tagtracker.elements.PerformanceTester.Holder;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -13,6 +20,7 @@ import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 public class OfflineDataHelper {
 	static {
@@ -205,6 +213,112 @@ public class OfflineDataHelper {
 		           out.close();
 		       } catch(Throwable ignore) {}
 		}
+	}
+	public void saveStatistics(List<Holder> holders, int coreNum){
+		int num = 0;
+		Boolean first = true;
+		StringBuilder sb = new StringBuilder();
+		for(int c=0;c<7; c++){
+			sb.append("data");
+			sb.append(c);
+			sb.append(",");
+		}
+		sb.append("width,height,maxThreads,");
+		sb.append("delay,drawing,dropped,frame,");
+		for(int c=0; c< coreNum; c++){
+			sb.append("freq");
+			sb.append(c);
+			sb.append(",");
+		}
+		sb.append("processing,threads\n");
+		Holder tmp = new PerformanceTester.Holder(coreNum);
+		for(int d=0; d<holders.size(); d++){
+			Holder h = holders.get(d);
+			if(h.maxThreads == tmp.maxThreads && h.width == tmp.width && h.height == tmp.height){
+				num++;
+			}else{
+				try{
+					num++;
+					for(int c=0;c<7; c++){
+						sb.append(tmp.data[c]/num);
+						tmp.data[c] = 0;
+						sb.append(",");
+					}
+					sb.append(tmp.width);
+					tmp.width = 0;
+					sb.append(",");
+					sb.append(tmp.height);
+					tmp.height = 0;
+					sb.append(",");
+					sb.append(tmp.maxThreads);
+					tmp.maxThreads = 0;
+					sb.append(",");
+					sb.append(tmp.delay/num);
+					tmp.delay = 0;
+					sb.append(",");
+					sb.append(tmp.drawing/num);
+					tmp.drawing = 0;
+					sb.append(",");
+					sb.append(tmp.dropped/num);
+					tmp.dropped = 0;
+					sb.append(",");
+					sb.append(tmp.frame/num);
+					tmp.frame = 0;
+					sb.append(",");
+					for(int c=0; c< coreNum; c++){
+						sb.append(tmp.frequencies[c]/num);
+						tmp.frequencies[c] = 0;
+						sb.append(",");
+					}
+					sb.append(tmp.processing/num);
+					tmp.processing = 0;
+					sb.append(",");
+					sb.append(tmp.threads/num);
+					tmp.threads = 0;
+					sb.append("\n");
+					num=0;
+				}catch(Exception e){
+					Log.e(TAG, "error!");
+				}
+			}
+			tmp.width = h.width;
+			tmp.height = h.height;
+			tmp.maxThreads = h.maxThreads;
+			for(int c=0;c<7; c++){
+				tmp.data[c] += h.data[c];
+			}
+			tmp.delay += h.delay;
+			tmp.drawing += h.drawing;
+			tmp.dropped += h.dropped;
+			tmp.frame += h.frame;
+			for(int c=0; c< coreNum; c++){
+				tmp.frequencies[c] += h.frequencies[c];
+			}
+			tmp.processing += h.processing;
+			tmp.threads += h.threads;
+		}
+		
+		
+		SimpleDateFormat s = new SimpleDateFormat("ddMMyyyyhhmmss",Locale.getDefault());
+		String date = s.format(new Date());
+		String filename = "statistics-"+date+".csv";
+		
+		
+		
+		
+		FileOutputStream out = null;
+		try {
+			File path = getScreenShotDir(filename);
+			out = new FileOutputStream(path);
+			out.write(sb.toString().getBytes());
+		} catch (Exception e) {
+	    	Log.e(TAG,"Couldn't save image: "+e.getMessage());
+		} finally {
+	       try{
+	           out.close();
+	       } catch(Throwable ignore) {}
+		}
+		
 	}
 	public void savePreferencedActivity(String activitySimpleName){
 		SharedPreferences.Editor editor = preferences.edit();

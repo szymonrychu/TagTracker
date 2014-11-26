@@ -20,10 +20,26 @@ import android.util.Log;
 import android.widget.Toast;
 
 public class TextToSpeechToText {
+	public final static int ERROR_NETWORK_TIMEOUT = SpeechRecognizer.ERROR_NETWORK_TIMEOUT;
+	public final static int ERROR_NETWORK = SpeechRecognizer.ERROR_NETWORK;
+	public final static int ERROR_AUDIO = SpeechRecognizer.ERROR_AUDIO;
+	public final static int ERROR_SERVER = SpeechRecognizer.ERROR_SERVER;
+	public final static int ERROR_CLIENT = SpeechRecognizer.ERROR_CLIENT;
+	public final static int ERROR_SPEECH_TIMEOUT = SpeechRecognizer.ERROR_SPEECH_TIMEOUT;
+	public final static int ERROR_NO_MATCH = SpeechRecognizer.ERROR_NO_MATCH;
+	public final static int ERROR_RECOGNIZER_BUSY = SpeechRecognizer.ERROR_RECOGNIZER_BUSY;
+	public final static int ERROR_INSUFFICIENT_PERMISSIONS = SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS;
+	public final static int EVENT_RMS_CHANGED = 11;
+	public final static int EVENT_READY_FOR_SPEECH = 12;
+	public final static int EVENT_BEGINNING_OF_SPEECH = 13;
+	public final static int EVENT_END_OF_SPEECH = 14;
+	public final static int EVENT_BUFFER_RECEIVED = 15;
+	public final static String[] ERRORS = {"Network timeout", "Network", "Audio recording", "Server side", "Client side", "Speech timeout", "No match", "Recognizer busy", "Insufficient permissions"};
 	public interface SpeechToTextListener{
 		public void onPartialRecognitionResult(String result, float confidence);
 		public void onRecognitionResult(String result, float confidence);
 		public void onDoneTalking(String text);
+		public void onEvent(int type);
 	}
 	private static final String TAG = TextToSpeechToText.class.getSimpleName();
 	private SpeechToTextListener speechToTextListener;
@@ -31,6 +47,10 @@ public class TextToSpeechToText {
 	private TextToSpeech tts;
 	private SpeechRecognizer recognizer;
 	public String recognitionResult = null;
+	protected float rmsdB = 0.0f;
+	protected Bundle params;
+	protected int eventType;
+	protected byte[] receivedBuffer;
 	private Runnable onUIThread = new Runnable() {
         @Override
         public void run() {
@@ -39,9 +59,9 @@ public class TextToSpeechToText {
         		recognizer.setRecognitionListener(new RecognitionListener() {
 					
 					@Override
-					public void onRmsChanged(float rmsdB) {
-						// TODO Auto-generated method stub
-						
+					public void onRmsChanged(float rmsdBL) {
+						rmsdB = rmsdBL;
+						speechToTextListener.onEvent(TextToSpeechToText.EVENT_RMS_CHANGED);
 					}
 					
 					@Override
@@ -57,9 +77,9 @@ public class TextToSpeechToText {
 					}
 					
 					@Override
-					public void onReadyForSpeech(Bundle params) {
-						// TODO Auto-generated method stub
-						
+					public void onReadyForSpeech(Bundle p) {
+						params = p;
+						speechToTextListener.onEvent(TextToSpeechToText.EVENT_READY_FOR_SPEECH);
 					}
 					
 					@Override
@@ -76,32 +96,27 @@ public class TextToSpeechToText {
 					
 					@Override
 					public void onEvent(int eventType, Bundle params) {
-						// TODO Auto-generated method stub
-						
 					}
 					
 					@Override
 					public void onError(int error) {
-						// TODO Auto-generated method stub
-						
+						speechToTextListener.onEvent(error);
 					}
 					
 					@Override
 					public void onEndOfSpeech() {
-						// TODO Auto-generated method stub
-						
+						speechToTextListener.onEvent(TextToSpeechToText.EVENT_END_OF_SPEECH);
 					}
 					
 					@Override
-					public void onBufferReceived(byte[] buffer) {
-						// TODO Auto-generated method stub
-						
+					public void onBufferReceived(byte[] bufferL) {
+						receivedBuffer = bufferL;
+						speechToTextListener.onEvent(TextToSpeechToText.EVENT_BUFFER_RECEIVED);
 					}
 					
 					@Override
 					public void onBeginningOfSpeech() {
-						// TODO Auto-generated method stub
-						
+						speechToTextListener.onEvent(TextToSpeechToText.EVENT_BEGINNING_OF_SPEECH);
 					}
 				});
         		if(speakAndRecognize){
@@ -145,6 +160,15 @@ public class TextToSpeechToText {
 		recognitionResult = null;
 		((Activity) context).runOnUiThread(onUIThread);
 		return recognitionResult;
+	}
+	public int stringToBool(String response){
+		if(response.contains("yes")){
+			return 1;
+		}else if(response.contains("no")){
+			return 0;
+		}else{
+			return -1;
+		}
 	}
 	public int stringToInt(String response){
 		try{

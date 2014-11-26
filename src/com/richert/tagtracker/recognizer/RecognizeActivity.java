@@ -25,6 +25,8 @@ import com.richert.tagtracker.elements.CameraDrawerPreview;
 import com.richert.tagtracker.elements.CpuInfo;
 import com.richert.tagtracker.elements.FullScreenActivity;
 import com.richert.tagtracker.elements.OfflineDataHelper;
+import com.richert.tagtracker.elements.PerformanceTester;
+import com.richert.tagtracker.elements.PerformanceTester.TestResultCallback;
 import com.richert.tagtracker.elements.Pointer;
 import com.richert.tagtracker.elements.ResolutionDialog;
 import com.richert.tagtracker.elements.TagDialog;
@@ -37,8 +39,11 @@ import com.richert.tagtracker.geomerty.Tag;
 import com.richert.tagtracker.markergen.MarkerGeneratorActivity;
 import com.richert.tagtracker.natUtils.Misc;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
+import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -53,6 +58,7 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.test.PerformanceTestCase;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Display;
@@ -83,14 +89,25 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private Looper mainLooper;
 	private boolean[] tagMap = new boolean[32];
 	private int confidenceCounter = 0;
-	private final static String WHAT_TAG_FOLLOW = "what tag number should I follow?";
+	private final static String WHAT_TAG_FOLLOW = " What tag number should I follow?";
 	private final static String DONT_SEE_TAGZ = "I don't see any tags, stopping!";
 	private final static String FOLLOWING_ = "Following tag number ";
+	private final static String I_DIDNT_CATCH_THAT_ = "I didn't catch that! you said: ";
+	private final static String I_AM_NOT_SURE_ = "I'm not sure what you mean! you said: ";
+	private final static String PLEASE_REPEAT_ = ", please repeat!";
+	private final static String IS_IT_OK_ = ", is it ok?";
+	private final static String ERROR_ = ", error occured, please repeat!";
+	private final static String FATAL_ERROR = ", error occured, stopping recognizer module!";
 	private int previewX=0;
 	private int previewY=0;
 	private boolean showDebug = false;
+	private boolean showCPU = false;
 	private CpuInfo cpuInfo;
 	private Button screenshotButton;
+	private PerformanceTester tester;
+	private int errorCounter = 0;
+	private boolean speak = true;
+	private boolean forceSpeaking = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -98,19 +115,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
         preview = (CameraDrawerPreview) findViewById(R.id.recognize_preview);
         preview.setCameraSetupCallback(this);
         preview.setCameraProcessingCallback(this);
-        preview.setMaxThreads(2);
 		helper = new OfflineDataHelper(this);
-		screenshotButton = (Button) findViewById(R.id.screenshot_button);
-		screenshotButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Bitmap bmp = preview.getScreenShot();
-				SimpleDateFormat s = new SimpleDateFormat("ddMMyyyyhhmmss",Locale.getDefault());
-				String date = s.format(new Date());
-				helper.saveScreenshot(bmp, "screenshot-"+date+".png");
-			}
-		});
-		screenshotButton.setVisibility(View.INVISIBLE);
 		greenPaint = new Paint();
 		greenPaint.setAntiAlias(true);
 		greenPaint.setColor(Color.GREEN);
@@ -127,44 +132,39 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		bluePaint.setStrokeWidth(7.0f);
 		bluePaint.setTextSize(25.0f);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		Intent intent = getIntent();
-		String extra = intent.getStringExtra(MainActivity.INTENT_EXTRA);
-		if(extra.contentEquals(UsbManager.ACTION_USB_DEVICE_ATTACHED)){
-			ttstt = new TextToSpeechToText(this);
-			ttstt.setSpeechToTextListener(this);
-		}
+		ttstt = new TextToSpeechToText(this);
+		ttstt.setSpeechToTextListener(this);
 		mainLooper = this.getMainLooper();
 		for(boolean t : tagMap){
 			t = false;
 		}
 		cpuInfo = new CpuInfo(300);
+		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
+
+		screenshotButton = (Button) findViewById(R.id.screenshot_button);
+		screenshotButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				tester.startTests();
+				Thread saver = new Thread(){
+					public void run() {
+						Bitmap bmp = preview.getScreenShot();
+						SimpleDateFormat s = new SimpleDateFormat("ddMMyyyyhhmmss",Locale.getDefault());
+						String date = s.format(new Date());
+						helper.saveScreenshot(bmp, "screenshot-"+date+".png");
+					};
+				};
+				saver.start();
+			}
+		});
+		screenshotButton.setVisibility(View.INVISIBLE);
 		super.onCreate(savedInstanceState);
 	}
 	@Override
 	protected void onResume() {
-		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
+		this.speak = true;
+		driverHelper.startMonitor(this);
 		cpuInfo.startReading();
-		if(asked != true){
-			asked = true;
-			Handler h = new Handler(mainLooper);
-			h.post(new Runnable() {
-				
-				@Override
-				public void run() {
-					if(ttstt != null){
-						ttstt.speak(WHAT_TAG_FOLLOW);
-					}else{
-						TagDialog tagDialog = new TagDialog(1,33) {
-							@Override
-							public void onListItemClick(DialogInterface dialog, Integer tag) {
-								trackedID = tag;
-							}
-						};
-						tagDialog.show(getFragmentManager(), "tagz");
-					}
-				}
-			});
-		}
 		super.onResume();
 	}
 	@Override
@@ -172,10 +172,12 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		if(driverHelper != null){
 			driverHelper.unregisterReceiver();
 		}
-		if(ttstt != null){
-			ttstt.onPause();
-		}
+		ttstt.onPause();
+		this.speak = false;
 		cpuInfo.stopReading();
+		if(tester != null){
+			tester.stopTests();
+		}
 		super.onPause();
 	}
 	@Override
@@ -183,7 +185,6 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		getMenuInflater().inflate(R.menu.recognizer, menu);
 		return true;
 	}
-	int maxW = 0;
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int id = item.getItemId();
@@ -194,7 +195,6 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 				@Override
 				public void onListItemClick(DialogInterface dialog, Camera.Size size) {
 					params.setPreviewSize(size.width, size.height);
-					maxW = size.width;
 					preview.reloadCameraSetup(params);
 					//TODO workaround - need further investigation
 					WindowManager manager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
@@ -227,7 +227,19 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		case R.id.recognize_action_debug:
 			item.setChecked(! item.isChecked());
 			showDebug = item.isChecked();
-			screenshotButton.setVisibility(View.VISIBLE);
+			if(showDebug){
+				screenshotButton.setVisibility(View.VISIBLE);
+			}else{
+				screenshotButton.setVisibility(View.INVISIBLE);
+			}
+			return true;
+		case R.id.recognize_action_graph:
+			item.setChecked(! item.isChecked());
+			showCPU = item.isChecked();
+			return true;
+		case R.id.recognize_force_speaking:
+			item.setChecked(! item.isChecked());
+			forceSpeaking = item.isChecked();
 			return true;
 		default:
 			return false;
@@ -265,14 +277,25 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			canvas.drawBitmap(Misc.mat2Bitmap(tag.preview), previewX, previewY , redPaint);
 		}
 	}
-	private void askIfChanged(final boolean[] newTagMap){
+	private void askIfChanged(){
+		
+		boolean[] newTagMap = new boolean[32];
+		for(boolean t : newTagMap){
+			t = false;
+		}
+		if(tags != null){
+			for(Tag t : tags){
+				newTagMap[t.id -1] = true;
+			}
+		}
 		Boolean diff = false;
 		for(int c = 0;c<32 && !diff; c++){
 			diff = tagMap[c] != newTagMap[c];
 		}
 		if(diff){
 			confidenceCounter++;
-			if(confidenceCounter>20){
+			if(confidenceCounter>30){
+				speak = driverHelper.transreceiving();
 				confidenceCounter=0;
 				trackedID = -1;
 				tagMap = newTagMap;
@@ -285,8 +308,9 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 					h.post(new Runnable() {
 						@Override
 						public void run() {
-							if(ttstt != null){
+							if(speak || forceSpeaking){
 								ttstt.speak(WHAT_TAG_FOLLOW);
+								Log.v(TAG,"speaking"+WHAT_TAG_FOLLOW);
 							}else{
 								TagDialog tagDialog = new TagDialog(1,33) {
 									@Override
@@ -302,16 +326,8 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 					h.post(new Runnable() {
 						@Override
 						public void run() {
-							if(ttstt != null){
+							if(speak || forceSpeaking){
 								ttstt.speak(DONT_SEE_TAGZ);
-							}else{
-								TagDialog tagDialog = new TagDialog(0,32) {
-									@Override
-									public void onListItemClick(DialogInterface dialog, Integer tag) {
-										trackedID = tag;
-									}
-								};
-								tagDialog.show(getFragmentManager(), "tagz");
 							}
 						}
 					});
@@ -324,44 +340,58 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private void drawDebugInfo(Canvas canvas){
 		int Y = 50;
 		if(showDebug){
-			canvas.drawText("Delay between frames: " + preview.getDelayBetweenFrames(), 30, Y+=30, bluePaint);
-			canvas.drawText("Processing delay: " + preview.getOperationTime(), 30, Y+=30, bluePaint);
+			canvas.drawText("Preview state: " + preview.getState(), 30, Y+=30, bluePaint);
+			canvas.drawText("Driver state: " + driverHelper.getState(), 30, Y+=30, bluePaint);
+			canvas.drawText("Device: "+driverHelper.getDeviceInfo(), 30, Y+=30, bluePaint);
 			canvas.drawText("Driver buffer: " + driverHelper.getBuffer(), 30, Y+=30, bluePaint);
 			for(int coreNum = 0; coreNum < cpuInfo.getNumCores(); coreNum++){
 				canvas.drawText(cpuInfo.getCpuUsage(coreNum), 30, Y+=30, bluePaint);
 			}
-			cpuInfo.drawCpuUsage(canvas, 30, Y+=30, 650, Y+=200);
 		}
+		if(showCPU){
+			cpuInfo.drawCpuUsage(canvas, 30, Y+=30, 800, Y+=300);
+		}
+		tester.getStatistics();
 	}
-	
+	private float meanY = -1;
 	@Override
 	public void drawOnCamera(Canvas canvas, double scaleX, double scaleY) {
-		boolean[] newTagMap = new boolean[32];
-		for(boolean t : newTagMap){
-			t = false;
-		}
+		
 		if(tags!=null){
 			previewX = previewY = 0;
+			float mY = 0;
 			for(Tag tag : tags){
-				newTagMap[tag.id-1]=true;
+				mY += tag.center.x;
 				if(tag.id == trackedID){
 					drawTag(tag, canvas, greenPaint);
 					drawTagPreview(tag, canvas, greenPaint);
-					driverHelper.steer((float)(3*((tag.center.x)-0.5f)),-1.0f,(float)4*((tag.center.y)-0.5f));
+					float z = (float)5*((tag.center.y)-0.5f);
+					mY += z;
+					driverHelper.steer((float)(3*((tag.center.x)-0.5f)),-1.0f,meanY);
 					
 				}else{
 					drawTag(tag, canvas, redPaint);
 					drawTagPreview(tag, canvas, redPaint);
-					driverHelper.steer(0,0,0);
+					driverHelper.steer(0,0,meanY);
+					float z = (float)5*((tag.center.y)-0.5f);
+					mY += z;
 				}
 				previewX+=tag.preview.cols();
 			}
+			if(meanY < 0){
+				meanY = mY/tags.length;
+			}else{
+				if(Math.abs(mY/tags.length - meanY)>0.1){
+					meanY = mY/tags.length;
+				}
+			}
+			
 			
 		}else{
-			driverHelper.steer(0,0,0);
+			driverHelper.steer(0,0,meanY);
 		}
 		drawDebugInfo(canvas);
-		askIfChanged(newTagMap);
+		askIfChanged();
 	}
 	@SuppressWarnings("deprecation")
 	private void setCameraParameters(Parameters params){
@@ -397,6 +427,53 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		Log.v(TAG,"params.getPreviewSize()=w:"+params.getPreviewSize().width+":h:"+params.getPreviewSize().height);
 		recognizer.notifySizeChanged(params.getPreviewSize(), rotation);
 	}
+	private ProgressDialog progress;
+	private void showProgressDialog(int maxStates){
+		final RecognizeActivity thiz = this;
+		final int max = maxStates;
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				progress = new ProgressDialog(thiz);
+				progress.setTitle("Testowanie urz¹dzenia");
+				progress.setMessage("postêp");
+				progress.setCancelable(true);
+				progress.setOnCancelListener(new OnCancelListener() {
+					@Override
+					public void onCancel(DialogInterface dialog) {
+						tester.stopTests();
+					}
+				});
+				progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+				progress.setMax(max);
+				progress.show();
+			}
+		});
+	}
+	private void updateProgressDialogStatus(int state){
+		final int st = state;
+		if(progress != null){
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					progress.setProgress(st);
+				}
+			});
+		}
+		
+	}
+	private void dismissProgressDialog(){
+		if(progress != null){
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					progress.dismiss();
+					progress = null;
+				}
+			});
+			
+		}
+	}
 	@Override
 	public void setCameraInitialParameters(Parameters params, int width, int height, int rotation) {
 		setCameraParameters(params);
@@ -405,9 +482,31 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		camWidth = helper.getResolutionWidth(params.getPreviewSize().width);
 		camHeight = helper.getResolutionHeight(params.getPreviewSize().height);
 		params.setPreviewSize(camWidth, camHeight);
-		
 		recognizer = new Recognizer(width, height);
 		recognizer.notifySizeChanged(params.getPreviewSize(), rotation);
+		tester = new PerformanceTester(this, preview, recognizer, cpuInfo, helper);
+		tester.addTestResultCallback(new TestResultCallback() {
+			
+			@Override
+			public void onTestStarted(int maxStates) {
+				showProgressDialog(maxStates);
+			}
+			
+			@Override
+			public void onTestResult() {
+				dismissProgressDialog();
+			}
+			
+			@Override
+			public void onTestInterrupted() {
+				dismissProgressDialog();
+			}
+
+			@Override
+			public void onTestProgress(int state) {
+				updateProgressDialogStatus(state);
+			}
+		});
 		
 	}
 	@Override
@@ -415,37 +514,72 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		// TODO Auto-generated method stub
 		
 	}
-
-	
 	@Override
 	public void onPartialRecognitionResult(String result, float confidence) {
 		Log.v(TAG,"onPartialRecognitionResult:"+result+":"+confidence);
 	}
+	int notSureTag = -1;
 	@Override
 	public void onRecognitionResult(String result, float confidence) {
 		Log.v(TAG,"onRecognitionResult:"+result+":"+confidence);
-		if(confidence < 0.5){
-        	ttstt.speak(WHAT_TAG_FOLLOW);
-		}else{
-	        trackedID = ttstt.stringToInt(result);
-	        Log.v(TAG,"response:"+result+":id:"+trackedID);
-	        if(trackedID < 1){
-	        	ttstt.speak(WHAT_TAG_FOLLOW);
-	        }else{
-	        	ttstt.speak(FOLLOWING_+trackedID);
-	        }
+		if(speak || forceSpeaking){
+			if(notSureTag > 0){
+				int yesNo = ttstt.stringToBool(result);
+				if(yesNo > 0){
+					trackedID = notSureTag;
+					ttstt.speak(FOLLOWING_+trackedID);
+					notSureTag = -1;
+				}else{
+					ttstt.speak(I_AM_NOT_SURE_ +result+ WHAT_TAG_FOLLOW);
+					notSureTag = -1;
+				}
+			}else{
+				int trackId = ttstt.stringToInt(result);
+				if(confidence < 0.4 && trackId > 0){
+		        	ttstt.speak(I_AM_NOT_SURE_ +result+ IS_IT_OK_);
+		        	notSureTag = trackId;
+				}else if(confidence < 0.4 && trackId <= 0){
+					ttstt.speak(I_DIDNT_CATCH_THAT_ +result+ PLEASE_REPEAT_);
+					notSureTag = -1;
+				}else if(confidence >= 0.4 && trackId <= 0){
+					ttstt.speak(I_DIDNT_CATCH_THAT_ +result+ PLEASE_REPEAT_);
+					notSureTag = -1;
+				}else if(confidence >= 0.4 && trackId > 0){
+					trackedID = trackId;
+					ttstt.speak(FOLLOWING_+trackedID);
+					notSureTag = -1;
+				}
+			}
 		}
 	}
 	@Override
 	public void onDoneTalking(String text) {
-		if(text.contentEquals(FOLLOWING_+trackedID)){
+		if(speak || forceSpeaking){
+			if(text.contains(FOLLOWING_)){
 
-		}else if(text.contentEquals(DONT_SEE_TAGZ)){
-			
-		}else if(text.contentEquals(WHAT_TAG_FOLLOW)){
-			ttstt.recognizeText();
+			}else if(text.contains(DONT_SEE_TAGZ)){
+				
+			}else if(text.contains(WHAT_TAG_FOLLOW)){
+				ttstt.recognizeText();
+			}else if(text.contains(I_AM_NOT_SURE_)){
+				ttstt.recognizeText();
+			}else if(text.contains(I_DIDNT_CATCH_THAT_)){
+				ttstt.recognizeText();
+			}else if(text.contains(ERROR_)){
+				ttstt.recognizeText();
+			}
 		}
-		// TODO Auto-generated method stub
-		
+	}
+	@Override
+	public void onEvent(int type) {
+		if(type < 10){
+			if(errorCounter > 3 ){
+				speak = false;
+				ttstt.speak(TextToSpeechToText.ERRORS[type] + FATAL_ERROR);
+			}else{
+				ttstt.speak(TextToSpeechToText.ERRORS[type] + ERROR_);
+			}
+			errorCounter++;
+		}
 	}
 }

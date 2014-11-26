@@ -51,10 +51,13 @@ public class ControlsHelper{
 			if(pointers.size()>0){
 				for(int id=0; id<pointers.size(); id++){
 					Pointer p = pointers.get(id);
-					if(joyPntrId != -1 || baseRect.contains(p.x, p.y) ){
-						joyPntrId = id;
-						break;
+					if(p != null){
+						if(joyPntrId != -1 || baseRect.contains(p.x, p.y) ){
+							joyPntrId = id;
+							break;
+						}
 					}
+					
 					
 					
 				}
@@ -70,14 +73,16 @@ public class ControlsHelper{
 				}
 			}else{
 				Pointer p = pointers.get(joyPntrId);
-				float x = p.getDX() > 0 ? Math.min(p.getDX(), pR) : Math.max(p.getDX(), -pR);
-				float y = p.getDY() > 0 ? Math.min(p.getDY(), pR) : Math.max(p.getDY(), -pR);
-				if(callback != null){
-					sentNeutral = false;
-					callback.getPivotPosition((x)/(pR), (y)/(pR));
+				if(p != null){
+					float x = p.getDX() > 0 ? Math.min(p.getDX(), pR) : Math.max(p.getDX(), -pR);
+					float y = p.getDY() > 0 ? Math.min(p.getDY(), pR) : Math.max(p.getDY(), -pR);
+					if(callback != null){
+						sentNeutral = false;
+						callback.getPivotPosition((x)/(pR), (y)/(pR));
+					}
+					canvas.drawCircle(x+bW, y+bH, pR, paint);
+					neutral = false;
 				}
-				canvas.drawCircle(x+bW, y+bH, pR, paint);
-				neutral = false;
 			}
 			
 		}
