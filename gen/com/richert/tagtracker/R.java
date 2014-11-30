@@ -167,8 +167,6 @@ containing a value of this type.
         public static final int butt_main_generate_str=0x7f08000b;
         public static final int butt_main_logcat_str=0x7f080012;
         public static final int butt_main_recognize_str=0x7f080005;
-        public static final int calibrate_activity_addframe=0x7f080054;
-        public static final int calibrate_activity_process=0x7f080055;
         public static final int main_action_about=0x7f080002;
         public static final int main_action_licences=0x7f080003;
         public static final int main_action_logcat=0x7f080013;

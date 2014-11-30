@@ -164,7 +164,7 @@ public class TextToSpeechToText {
 			@Override
 			public void onInit(int status) {
 				if(status == TextToSpeech.SUCCESS){
-					tts.setLanguage(LanguageHelper.getDefaultLocale());
+					tts.setLanguage(Locale.US);
 					tts.setOnUtteranceProgressListener(new UtteranceProgressListener(){
 						@Override
 						public void onStart(String utteranceId) {
