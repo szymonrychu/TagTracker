@@ -19,30 +19,39 @@
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <Button
-        android:id="@+id/butt_main_recognize"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/logcat_text_view"
-        android:layout_alignRight="@+id/logcat_text_view"
-        android:layout_below="@+id/logcat_text_view"
-        android:text="@string/butt_main_recognize_str" />
-
-    <Button
         android:id="@+id/butt_main_driver"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/butt_main_recognize"
-        android:layout_alignRight="@+id/butt_main_recognize"
-        android:layout_below="@+id/butt_main_recognize"
+        android:layout_alignLeft="@+id/logcat_text_view"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/logcat_text_view"
         android:text="@string/butt_main_driver" />
+
+    <Button
+        android:id="@+id/butt_main_recognizer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/butt_main_driver"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/butt_main_driver"
+        android:text="@string/butt_main_recognize_str" />
 
     <Button
         android:id="@+id/butt_main_marker_gen"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/butt_main_driver"
-        android:layout_alignRight="@+id/butt_main_driver"
-        android:layout_below="@+id/butt_main_driver"
+        android:layout_alignLeft="@+id/butt_main_recognizer"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/butt_main_recognizer"
         android:text="@string/butt_main_generate_str" />
+
+    <Button
+        android:id="@+id/butt_main_facefollower"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/butt_main_marker_gen"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/butt_main_marker_gen"
+        android:text="Button" />
 
 </RelativeLayout>

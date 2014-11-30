@@ -3,16 +3,20 @@
 
 #include <jni.h>
 #include <vector>
+#include <string>
 #include <math.h>
 #include <sys/time.h>
 #include <android/log.h>
 #include <opencv2/core/core.hpp>
+#include <opencv2/contrib/detection_based_tracker.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/imgproc/imgproc_c.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+
+#include "opencv2/objdetect/objdetect.hpp"
 
 
 using namespace cv;

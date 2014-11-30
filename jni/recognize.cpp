@@ -166,6 +166,7 @@ public:
 	vector<Geometry::Tag> recognizeTags(Mat&mYuv){
 	    Mat mGray(mYuv.rows,mYuv.cols,CV_8UC3);
 	    cvtColor(mYuv,mGray,COLOR_YUV2GRAY_NV21);
+	    equalizeHist( mGray, mGray );
 	    Mat mBin;
 	    adaptiveThreshold(mGray,mBin,255,CV_ADAPTIVE_THRESH_GAUSSIAN_C,CV_THRESH_BINARY_INV,blockSize,adaptThresh);
 	    //dilate(mBin,mBin,Mat());

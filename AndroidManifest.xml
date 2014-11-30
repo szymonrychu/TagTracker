@@ -60,6 +60,15 @@
             android:launchMode="singleInstance" >
         </activity>
         <activity
+            android:name=".facefollower.FaceFollowerActivity"
+        	android:hardwareAccelerated="true"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_recognize"
+            android:theme="@style/android:Theme.Material"
+            android:launchMode="singleInstance" >
+        </activity>
+        <activity
             android:name=".markergen.MarkerGeneratorActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_marker_generator"

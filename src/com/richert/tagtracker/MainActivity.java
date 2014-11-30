@@ -19,6 +19,7 @@ import android.widget.Button;
 import com.richert.tagtracker.driver.DriverActivity;
 import com.richert.tagtracker.elements.LanguageHelper;
 import com.richert.tagtracker.elements.OfflineDataHelper;
+import com.richert.tagtracker.facefollower.FaceFollowerActivity;
 import com.richert.tagtracker.markergen.MarkerGeneratorActivity;
 import com.richert.tagtracker.recognizer.RecognizeActivity;
 
@@ -29,6 +30,7 @@ public class MainActivity extends Activity implements Runnable{
 	private Button recognizeButton = null;
 	private Button generateButton = null;
 	private Button driverButton = null;
+	private Button facefollowerButton = null;
 	private Context context;
 	private String action, preferedActivity;
 	private OfflineDataHelper dbHelper;
@@ -46,9 +48,10 @@ public class MainActivity extends Activity implements Runnable{
 		driverSimpleName = DriverActivity.class.getSimpleName();
 		recognizeSimpleName = RecognizeActivity.class.getSimpleName();
 		action = getIntent().getAction();
-		recognizeButton = (Button) findViewById(R.id.butt_main_recognize);
+		recognizeButton = (Button) findViewById(R.id.butt_main_recognizer);
 		driverButton = (Button) findViewById(R.id.butt_main_driver);
 		generateButton = (Button) findViewById(R.id.butt_main_marker_gen);
+		facefollowerButton = (Button) findViewById(R.id.butt_main_facefollower);
 		latch = false;
 		tts = new TextToSpeech(this, new OnInitListener(){
 
@@ -91,6 +94,15 @@ public class MainActivity extends Activity implements Runnable{
 				Intent generate = new Intent(context,MarkerGeneratorActivity.class);
 				generate.putExtra(INTENT_EXTRA, action);
 				startActivity(generate);
+			}
+		});
+		facefollowerButton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Intent facefollower = new Intent(context,FaceFollowerActivity.class);
+				facefollower.putExtra(INTENT_EXTRA, action);
+				startActivity(facefollower);
 			}
 		});
 		super.onResume();
