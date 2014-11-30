@@ -27,6 +27,7 @@ public class LanguageHelper {
 	public final static int EVENT_BUFFER_RECEIVED = 15;
 	private String errorCodes[] = null;
 	private String num1[] = null;
+	private String num1th[] = null;
 	private String num10[] = null;
 	private String num100[] = null;
 	private Context context;
@@ -83,6 +84,21 @@ public class LanguageHelper {
 		this.num100[6] = context.getResources().getString(R.string.num700);
 		this.num100[7] = context.getResources().getString(R.string.num800);
 		this.num100[8] = context.getResources().getString(R.string.num900);
+		this.num1th = new String[14];
+		this.num1th[0] = context.getResources().getString(R.string.num1th);
+		this.num1th[1] = context.getResources().getString(R.string.num2th);
+		this.num1th[2] = context.getResources().getString(R.string.num3th);
+		this.num1th[3] = context.getResources().getString(R.string.num5th);
+		this.num1th[4] = context.getResources().getString(R.string.num8th);
+		this.num1th[5] = context.getResources().getString(R.string.num9th);
+		this.num1th[6] = context.getResources().getString(R.string.num20th);
+		this.num1th[7] = context.getResources().getString(R.string.num30th);
+		this.num1th[8] = context.getResources().getString(R.string.num40th);
+		this.num1th[9] = context.getResources().getString(R.string.num50th);
+		this.num1th[10] = context.getResources().getString(R.string.num60th);
+		this.num1th[11] = context.getResources().getString(R.string.num70th);
+		this.num1th[12] = context.getResources().getString(R.string.num80th);
+		this.num1th[13] = context.getResources().getString(R.string.num90th);
 	}
 	public static String[] getAvailableCountries(){
 		return Locale.getISOCountries();
@@ -106,16 +122,15 @@ public class LanguageHelper {
 		StringBuilder sb = new StringBuilder();
 		if(num < 0 ){
 			sb.append(context.getResources().getString(R.string.numminus));
+			sb.append(" ");
 		}
 		int absNum = Math.abs(num);
 		if(absNum < 20){
-			sb.append(" ");
 			sb.append(num1[absNum]);
 		}else if(absNum < 100){
 			int one = absNum%10;
 			int ten = absNum - one;
 			ten = ten / 10;
-			sb.append(" ");
 			sb.append(num10[ten-2]);
 			if(one != 0){
 				sb.append(" ");
@@ -127,7 +142,6 @@ public class LanguageHelper {
 			ten = ten / 10;
 			int houndred = absNum - (ten + one);
 			houndred = houndred / 100;
-			sb.append(" ");
 			sb.append(num100[houndred]);
 			if(ten != 0){
 				sb.append(" ");
@@ -139,7 +153,110 @@ public class LanguageHelper {
 			}
 		}
 		String res = sb.toString();
-		Log.d(TAG,"number = "+res);
+		return res;
+	}
+	public String getNumTH(int num){
+		StringBuilder sb = new StringBuilder();
+		if(num < 0 ){
+			sb.append(context.getResources().getString(R.string.numminus));
+			sb.append(" ");
+		}
+		int absNum = Math.abs(num);
+		if(absNum < 20){
+			switch(absNum){
+			case 1:
+				sb.append(num1th[0]);
+				break;
+			case 2:
+				sb.append(num1th[1]);
+				break;
+			case 3:
+				sb.append(num1th[2]);
+				break;
+			case 5:
+				sb.append(num1th[3]);
+				break;
+			case 8:
+				sb.append(num1th[4]);
+				break;
+			default:
+				sb.append(num1[absNum]);
+				sb.append("th");
+				break;
+			}
+			
+		}else if(absNum < 100){
+			int one = absNum%10;
+			int ten = absNum - one;
+			ten = ten / 10;
+			if(one != 0){
+				sb.append(num10[ten-2]);
+				sb.append(" ");
+				switch(one){
+				case 1:
+					sb.append(num1th[0]);
+					break;
+				case 2:
+					sb.append(num1th[1]);
+					break;
+				case 3:
+					sb.append(num1th[2]);
+					break;
+				case 5:
+					sb.append(num1th[3]);
+					break;
+				case 8:
+					sb.append(num1th[4]);
+					break;
+				default:
+					sb.append(num1[one]);
+					sb.append("th");
+					break;
+				}
+			}else{
+				sb.append(num1th[ten + 4]);
+			}
+		}else if(absNum < 1000){
+			int one = absNum%10;
+			int ten = absNum%100 - one;
+			ten = ten / 10;
+			int houndred = absNum - (ten + one);
+			houndred = houndred / 100;
+			sb.append(num100[houndred]);
+			sb.append(" ");
+			if(ten != 0){
+				if(one != 0){
+					sb.append(num10[ten-2]);
+					sb.append(" ");
+					switch(one){
+					case 1:
+						sb.append(num1th[0]);
+						break;
+					case 2:
+						sb.append(num1th[1]);
+						break;
+					case 3:
+						sb.append(num1th[2]);
+						break;
+					case 5:
+						sb.append(num1th[3]);
+						break;
+					case 8:
+						sb.append(num1th[4]);
+						break;
+					default:
+						sb.append(num1[one]);
+						sb.append("th");
+						break;
+					}
+				}else{
+					sb.append(num1th[ten + 6]);
+				}
+			}else{
+				sb.append("th");
+			}
+		}
+		String res = sb.toString();
 		return res;
 	}
 	public String getErrorString(int errorCode){
@@ -186,9 +303,17 @@ public class LanguageHelper {
 		return context.getResources().getString(R.string.FATAL_ERROR);
 	}
 	public int stringToInt(String response){
-		for(int c = 1; c<=32;c++){
-			if(response.contains(getNum(c))){
-				return c;
+		try{
+			int tmp = Integer.parseInt(response);
+			return tmp;
+		}catch(NumberFormatException e){
+			for(int c = 1; c<=32;c++){
+				String num = getNum(c);
+				String numth = getNumTH(c);
+				Log.d(TAG,""+c+"=>"+num+"=>"+numth);
+				if(response.contains(num) || response.contains(numth)){
+					return c;
+				}
 			}
 		}
 		return -1;

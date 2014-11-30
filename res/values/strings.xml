@@ -6,7 +6,7 @@
     <string name="main_action_about">About the author</string>
     <string name="main_action_licences">Third party licences</string>
     <string name="main_mode_select_desc_str">Select mode:</string>
-    <string name="butt_main_recognize_str">Recognize tags:</string>
+    <string name="butt_main_recognize_str">Recognize tags</string>
     <string name="title_activity_recognize">Recognizer</string>
     <string name="recognize_button_screenshot">Screenshot</string>
     <string name="recognize_action_resolution">Resolution</string>
@@ -70,7 +70,7 @@
     <string name="num18">eighteen</string>
     <string name="num19">nineteen</string>
     <string name="num20">twenty</string>
-    <string name="num30">theerty</string>
+    <string name="num30">thirty</string>
     <string name="num40">forty</string>
     <string name="num50">fifty</string>
     <string name="num60">sixty</string>
@@ -87,4 +87,18 @@
     <string name="num800">eight houndred</string>
     <string name="num900">nine houndred</string>
 
+    <string name="num1th">first</string>
+    <string name="num2th">second</string>
+    <string name="num3th">third</string>
+    <string name="num5th">fifth</string>
+    <string name="num8th">eighth</string>
+    <string name="num9th">ninth</string>
+    <string name="num20th">twentieth</string>
+    <string name="num30th">thirtieth</string>
+    <string name="num40th">fortieth</string>
+    <string name="num50th">fiftieth</string>
+    <string name="num60th">sixtieth</string>
+    <string name="num70th">seventieth</string>
+    <string name="num80th">eightieth</string>
+    <string name="num90th">ninetieth</string>
 </resources>
