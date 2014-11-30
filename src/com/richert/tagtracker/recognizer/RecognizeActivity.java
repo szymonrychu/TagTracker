@@ -24,6 +24,7 @@ import com.richert.tagtracker.driver.DriverHelper;
 import com.richert.tagtracker.elements.CameraDrawerPreview;
 import com.richert.tagtracker.elements.CpuInfo;
 import com.richert.tagtracker.elements.FullScreenActivity;
+import com.richert.tagtracker.elements.LanguageHelper;
 import com.richert.tagtracker.elements.OfflineDataHelper;
 import com.richert.tagtracker.elements.PerformanceTester;
 import com.richert.tagtracker.elements.PerformanceTester.TestResultCallback;
@@ -89,15 +90,6 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private Looper mainLooper;
 	private boolean[] tagMap = new boolean[32];
 	private int confidenceCounter = 0;
-	private final static String WHAT_TAG_FOLLOW = " What tag number should I follow?";
-	private final static String DONT_SEE_TAGZ = "I don't see any tags, stopping!";
-	private final static String FOLLOWING_ = "Following tag number ";
-	private final static String I_DIDNT_CATCH_THAT_ = "I didn't catch that! you said: ";
-	private final static String I_AM_NOT_SURE_ = "I'm not sure what you mean! you said: ";
-	private final static String PLEASE_REPEAT_ = ", please repeat!";
-	private final static String IS_IT_OK_ = ", is it ok?";
-	private final static String ERROR_ = ", error occured, please repeat!";
-	private final static String FATAL_ERROR = ", error occured, stopping recognizer module!";
 	private int previewX=0;
 	private int previewY=0;
 	private boolean showDebug = false;
@@ -108,7 +100,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private int errorCounter = 0;
 	private boolean speak = true;
 	private boolean forceSpeaking = false;
-	
+	private LanguageHelper langHelper;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_recognize);
@@ -132,8 +124,6 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		bluePaint.setStrokeWidth(7.0f);
 		bluePaint.setTextSize(25.0f);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		ttstt = new TextToSpeechToText(this);
-		ttstt.setSpeechToTextListener(this);
 		mainLooper = this.getMainLooper();
 		for(boolean t : tagMap){
 			t = false;
@@ -158,6 +148,9 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			}
 		});
 		screenshotButton.setVisibility(View.INVISIBLE);
+		langHelper = new LanguageHelper(this);
+		ttstt = new TextToSpeechToText(this, langHelper);
+		ttstt.setSpeechToTextListener(this);
 		super.onCreate(savedInstanceState);
 	}
 	@Override
@@ -309,8 +302,8 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 						@Override
 						public void run() {
 							if(speak || forceSpeaking){
-								ttstt.speak(WHAT_TAG_FOLLOW);
-								Log.v(TAG,"speaking"+WHAT_TAG_FOLLOW);
+								ttstt.speak(langHelper.getWhatTagToFollow());
+								Log.v(TAG,"speaking"+langHelper.getWhatTagToFollow());
 							}else{
 								TagDialog tagDialog = new TagDialog(1,33) {
 									@Override
@@ -327,7 +320,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 						@Override
 						public void run() {
 							if(speak || forceSpeaking){
-								ttstt.speak(DONT_SEE_TAGZ);
+								ttstt.speak(langHelper.getDontSeeTagz());
 							}
 						}
 					});
@@ -524,29 +517,29 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		Log.v(TAG,"onRecognitionResult:"+result+":"+confidence);
 		if(speak || forceSpeaking){
 			if(notSureTag > 0){
-				int yesNo = ttstt.stringToBool(result);
+				int yesNo = langHelper.stringToBool(result);
 				if(yesNo > 0){
 					trackedID = notSureTag;
-					ttstt.speak(FOLLOWING_+trackedID);
+					ttstt.speak(langHelper.getFollowing()+trackedID);
 					notSureTag = -1;
 				}else{
-					ttstt.speak(I_AM_NOT_SURE_ +result+ WHAT_TAG_FOLLOW);
+					ttstt.speak(langHelper.getImNotSure() +result+ langHelper.getWhatTagToFollow());
 					notSureTag = -1;
 				}
 			}else{
-				int trackId = ttstt.stringToInt(result);
+				int trackId = langHelper.stringToInt(result);
 				if(confidence < 0.4 && trackId > 0){
-		        	ttstt.speak(I_AM_NOT_SURE_ +result+ IS_IT_OK_);
+		        	ttstt.speak(langHelper.getImNotSure() +result+ langHelper.getISItOk());
 		        	notSureTag = trackId;
 				}else if(confidence < 0.4 && trackId <= 0){
-					ttstt.speak(I_DIDNT_CATCH_THAT_ +result+ PLEASE_REPEAT_);
+					ttstt.speak(langHelper.getIDidntCatchThat() +result+ langHelper.getPleaseRepeat());
 					notSureTag = -1;
 				}else if(confidence >= 0.4 && trackId <= 0){
-					ttstt.speak(I_DIDNT_CATCH_THAT_ +result+ PLEASE_REPEAT_);
+					ttstt.speak(langHelper.getIDidntCatchThat() +result+ langHelper.getPleaseRepeat());
 					notSureTag = -1;
 				}else if(confidence >= 0.4 && trackId > 0){
 					trackedID = trackId;
-					ttstt.speak(FOLLOWING_+trackedID);
+					ttstt.speak(langHelper.getFollowing()+trackedID);
 					notSureTag = -1;
 				}
 			}
@@ -555,17 +548,17 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	@Override
 	public void onDoneTalking(String text) {
 		if(speak || forceSpeaking){
-			if(text.contains(FOLLOWING_)){
+			if(text.contains(langHelper.getFollowing())){
 
-			}else if(text.contains(DONT_SEE_TAGZ)){
+			}else if(text.contains(langHelper.getDontSeeTagz())){
 				
-			}else if(text.contains(WHAT_TAG_FOLLOW)){
+			}else if(text.contains(langHelper.getWhatTagToFollow())){
 				ttstt.recognizeText();
-			}else if(text.contains(I_AM_NOT_SURE_)){
+			}else if(text.contains(langHelper.getImNotSure())){
 				ttstt.recognizeText();
-			}else if(text.contains(I_DIDNT_CATCH_THAT_)){
+			}else if(text.contains(langHelper.getIDidntCatchThat())){
 				ttstt.recognizeText();
-			}else if(text.contains(ERROR_)){
+			}else if(text.contains(langHelper.getError())){
 				ttstt.recognizeText();
 			}
 		}
@@ -575,9 +568,9 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		if(type < 10){
 			if(errorCounter > 3 ){
 				speak = false;
-				ttstt.speak(TextToSpeechToText.ERRORS[type] + FATAL_ERROR);
+				ttstt.speak(langHelper.getErrorString(type) + langHelper.getFatalError());
 			}else{
-				ttstt.speak(TextToSpeechToText.ERRORS[type] + ERROR_);
+				ttstt.speak(langHelper.getErrorString(type) + langHelper.getError());
 			}
 			errorCounter++;
 		}

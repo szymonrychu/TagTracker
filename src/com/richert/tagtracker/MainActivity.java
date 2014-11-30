@@ -1,11 +1,15 @@
 package com.richert.tagtracker;
 
+import java.util.Locale;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnInitListener;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,6 +17,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 
 import com.richert.tagtracker.driver.DriverActivity;
+import com.richert.tagtracker.elements.LanguageHelper;
 import com.richert.tagtracker.elements.OfflineDataHelper;
 import com.richert.tagtracker.markergen.MarkerGeneratorActivity;
 import com.richert.tagtracker.recognizer.RecognizeActivity;
@@ -29,6 +34,7 @@ public class MainActivity extends Activity implements Runnable{
 	private OfflineDataHelper dbHelper;
 	private String driverSimpleName, recognizeSimpleName;
 	private Boolean latch;
+	private TextToSpeech tts;
 	public MainActivity() {
 		this.context = this;
 	}
@@ -44,6 +50,19 @@ public class MainActivity extends Activity implements Runnable{
 		driverButton = (Button) findViewById(R.id.butt_main_driver);
 		generateButton = (Button) findViewById(R.id.butt_main_marker_gen);
 		latch = false;
+		tts = new TextToSpeech(this, new OnInitListener(){
+
+			@Override
+			public void onInit(int status) {
+				int res = tts.isLanguageAvailable(Locale.getDefault());
+				if(res == TextToSpeech.LANG_COUNTRY_VAR_AVAILABLE){
+					LanguageHelper.setDefaultLocale(Locale.US);
+				}
+			}
+			
+		});
+		tts.shutdown();
+		
 	}
 	
 	@Override
