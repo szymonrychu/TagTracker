@@ -34,7 +34,7 @@ public class MainActivity extends Activity implements Runnable{
 	private Context context;
 	private String action, preferedActivity;
 	private OfflineDataHelper dbHelper;
-	private String driverSimpleName, recognizeSimpleName;
+	private String driverSimpleName, recognizeSimpleName, faceFollowerSimpleName;
 	private Boolean latch;
 	private TextToSpeech tts;
 	public MainActivity() {
@@ -47,6 +47,7 @@ public class MainActivity extends Activity implements Runnable{
 		setContentView(R.layout.activity_main);
 		driverSimpleName = DriverActivity.class.getSimpleName();
 		recognizeSimpleName = RecognizeActivity.class.getSimpleName();
+		faceFollowerSimpleName = FaceFollowerActivity.class.getSimpleName();
 		action = getIntent().getAction();
 		recognizeButton = (Button) findViewById(R.id.butt_main_recognizer);
 		driverButton = (Button) findViewById(R.id.butt_main_driver);
@@ -100,6 +101,7 @@ public class MainActivity extends Activity implements Runnable{
 			
 			@Override
 			public void onClick(View v) {
+				dbHelper.savePreferencedActivity(FaceFollowerActivity.class.getSimpleName());
 				Intent facefollower = new Intent(context,FaceFollowerActivity.class);
 				facefollower.putExtra(INTENT_EXTRA, action);
 				startActivity(facefollower);
@@ -170,6 +172,11 @@ public class MainActivity extends Activity implements Runnable{
 				onPause();
 			}else if(preferedActivity.contentEquals(driverSimpleName)){
 				Intent drive = new Intent(context,DriverActivity.class);
+				drive.putExtra(INTENT_EXTRA, action);
+				startActivityForResult(drive, 0);
+				onPause();
+			}else if(preferedActivity.contentEquals(driverSimpleName)){
+				Intent drive = new Intent(context,FaceFollowerActivity.class);
 				drive.putExtra(INTENT_EXTRA, action);
 				startActivityForResult(drive, 0);
 				onPause();

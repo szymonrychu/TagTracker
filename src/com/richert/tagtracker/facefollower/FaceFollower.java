@@ -13,6 +13,7 @@ import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
 import org.opencv.core.Size;
 import org.opencv.objdetect.CascadeClassifier;
+
 import com.richert.tagtracker.R;
 
 import android.content.Context;
@@ -26,7 +27,14 @@ import com.richert.tagtracker.natUtils.Misc;
 
 
 public class FaceFollower {
-    private CascadeClassifier      mJavaDetector;
+	static {
+		if (!OpenCVLoader.initDebug()) {
+	        // Handle initialization error
+	    } else {
+	    	//TODO here load native library
+	    }
+	}
+    private CascadeClassifier mJavaDetector;
 	private final static String TAG = FaceFollower.class.getSimpleName();
 	private long ptr = 0;
 	private native long newFaceFollowerNtv(int width, int height, String filename);
@@ -60,8 +68,6 @@ public class FaceFollower {
                 mJavaDetector = null;
             } else
                 Log.i(TAG, "Loaded cascade classifier from " + cascadeFile.getAbsolutePath());
-
-
             cascadeDir.delete();
 
         } catch (IOException e) {
@@ -109,12 +115,12 @@ public class FaceFollower {
 	    	p.x = rect.x;
 	    	p.y = rect.y + rect.height;
 	    	X+=p.x; Y+=p.y;
-	    	t.points[2] = p;
+	    	t.points[3] = p;
 	    	p = new Point();
 	    	p.x = rect.x + rect.width;
 	    	p.y = rect.y + rect.height;
 	    	X+=p.x; Y+=p.y;
-	    	t.points[3] = p;
+	    	t.points[2] = p;
 	    	t.center = new Point();
 	    	t.center.x = X/4;
 	    	t.center.y = Y/4;

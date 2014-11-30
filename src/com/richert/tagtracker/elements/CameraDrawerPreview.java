@@ -309,6 +309,8 @@ public class CameraDrawerPreview extends ViewGroup {
 					}
 				} 
 			}
+			Camera.Parameters params = camera.getParameters();
+	        reloadCameraSetup(params);
 		}
 		@Override
 		public void surfaceChanged(SurfaceHolder holder, int format, int widthL,

@@ -82,12 +82,12 @@ public class FaceFollowerActivity extends FullScreenActivity implements CameraSe
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
 		filename = "";
-		recognizer = new FaceFollower(this);
 		super.onCreate(savedInstanceState);
 	}
 	@Override
 	protected void onResume() {
 		driverHelper.startMonitor(this);
+		recognizer = new FaceFollower(this);
 		super.onResume();
 	}
 	@Override
@@ -138,10 +138,10 @@ public class FaceFollowerActivity extends FullScreenActivity implements CameraSe
 	}
 	private void drawTag(Tag tag, Canvas canvas, Paint paint){
 		for(int c=0;c<4;c++){
-			float x1 = tag.points[c].x*viewWidth;
-			float y1 = tag.points[c].y*viewHeight;
-			float x2 = tag.points[(c+1)%4].x*viewWidth;
-			float y2 = tag.points[(c+1)%4].y*viewHeight;
+			float x1 = tag.points[c].x;
+			float y1 = tag.points[c].y;
+			float x2 = tag.points[(c+1)%4].x;
+			float y2 = tag.points[(c+1)%4].y;
 			canvas.drawLine(x1, y1, x2, y2, paint);
 		}
 		canvas.drawText("face", tag.center.x, tag.center.y, paint);
@@ -219,6 +219,7 @@ public class FaceFollowerActivity extends FullScreenActivity implements CameraSe
 		camWidth = helper.getResolutionWidth(params.getPreviewSize().width);
 		camHeight = helper.getResolutionHeight(params.getPreviewSize().height);
 		params.setPreviewSize(camWidth, camHeight);
+		Log.v(TAG,"params.getPreviewSize()=w:"+params.getPreviewSize().width+":h:"+params.getPreviewSize().height);
 		
 	}
 	@Override
