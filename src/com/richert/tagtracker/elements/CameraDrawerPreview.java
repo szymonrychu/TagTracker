@@ -57,8 +57,8 @@ public class CameraDrawerPreview extends ViewGroup {
 	protected static long processingTime = 0;
 	private static long frameDelayPrevTime = 0;
 	protected static long frameDelayTime = 0;
-	protected static long oneThreadPDelayTime = 0;
-	protected static long oneThreadDDelayTime = 0;
+	public static long oneThreadPDelayTime = 0;
+	public static long oneThreadDDelayTime = 0;
 	private static long timeTmp3 = 0;
 	protected static int droppedFrames = 0;
 	private static int maxThreads = 1;
@@ -297,7 +297,7 @@ public class CameraDrawerPreview extends ViewGroup {
 				camera.release();
 				camera=null;
 			}
-			for(int c=0;c<10 || camera == null; c++){
+			for(int c=0;c<10 && camera == null; c++){
 				try {
 					camera = Camera.open();
 					camera.setPreviewDisplay(this.surfaceHolder);
@@ -317,7 +317,7 @@ public class CameraDrawerPreview extends ViewGroup {
 				int heightL) {
 			width = widthL;
 			height = heightL;
-			Log.v(TAG,"updated: w:"+width+":h:"+height);
+			Log.v(TAG,"surfaceChanged: w:"+width+":h:"+height);
 
 			Camera.Parameters params = camera.getParameters();
 	        reloadCameraSetup(params);

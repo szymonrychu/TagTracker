@@ -346,13 +346,13 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		}
 		tester.getStatistics();
 	}
-	private float meanY = -1;
+	private float meanY = 177;
 	@Override
 	public void drawOnCamera(Canvas canvas, double scaleX, double scaleY) {
 		
 		if(tags!=null){
 			previewX = previewY = 0;
-			float mY = 0;
+			float mY = -1;
 			for(Tag tag : tags){
 				mY += tag.center.x;
 				if(tag.id == trackedID){
@@ -371,7 +371,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 				}
 				previewX+=tag.preview.cols();
 			}
-			if(meanY < 0){
+			if(meanY > 0){
 				meanY = mY/tags.length;
 			}else{
 				if(Math.abs(mY/tags.length - meanY)>0.1){

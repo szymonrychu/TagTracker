@@ -41,6 +41,7 @@ import android.hardware.Camera.Area;
 import android.hardware.Camera.Parameters;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Display;
@@ -151,24 +152,23 @@ public class FaceFollowerActivity extends FullScreenActivity implements CameraSe
 		tags = recognizer.findTags(yuvFrame, rotation);
 		preview.requestRefresh();
 	}
-	float meanY;
+	float meanY = 177;
 	@Override
 	public void drawOnCamera(Canvas canvas, double scaleX, double scaleY) {
 		float Y = -1;
 		if(tags!=null){
 			for(Tag tag : tags){
 				drawTag(tag, canvas, greenPaint);
-				Y = tag.center.y;
+				Y = (float)5*((tag.center.y/viewHeight)-0.5f);
+				driverHelper.steer((float)(3*((tag.center.x/viewWidth)-0.5f)),-1.0f,meanY);
 			}
-			if(Y < 0){
+			if(meanY < 0){
 				meanY = Y;
 			}else{
 				if(Math.abs(meanY - Y)>0.1){
 					meanY = Y;
 				}
 			}
-			
-			
 		}else{
 			driverHelper.steer(0,0,meanY);
 		}
@@ -178,6 +178,7 @@ public class FaceFollowerActivity extends FullScreenActivity implements CameraSe
 		// TODO Auto-generated method stub
 		
 	}
+	boolean sw = false;
 	private void setCameraParameters(Parameters params){
 		if(params.isAutoExposureLockSupported()){
 			params.setAutoExposureLock(false);
@@ -202,13 +203,15 @@ public class FaceFollowerActivity extends FullScreenActivity implements CameraSe
 			areas.add(new Area(new Rect(-500, -500, 500, 500), 1000));
 			params.setMeteringAreas(areas);
 		}
+		
+		
 	}
 	@Override
 	public void setCameraParameters(Parameters params, int width, int height, int rotation) {
 		setCameraParameters(params);
 		viewHeight = height;
 		viewWidth = width;
-		Log.v(TAG,"params.getPreviewSize()=w:"+params.getPreviewSize().width+":h:"+params.getPreviewSize().height);
+		Log.v(TAG,"setCameraParameters=w:"+params.getPreviewSize().width+":h:"+params.getPreviewSize().height);
 		//recognizer.notifySizeChanged(params.getPreviewSize(), rotation);
 	}
 	@Override
@@ -219,8 +222,7 @@ public class FaceFollowerActivity extends FullScreenActivity implements CameraSe
 		camWidth = helper.getResolutionWidth(params.getPreviewSize().width);
 		camHeight = helper.getResolutionHeight(params.getPreviewSize().height);
 		params.setPreviewSize(camWidth, camHeight);
-		Log.v(TAG,"params.getPreviewSize()=w:"+params.getPreviewSize().width+":h:"+params.getPreviewSize().height);
-		
+		Log.v(TAG,"setCameraInitialParameters=w:"+params.getPreviewSize().width+":h:"+params.getPreviewSize().height);
 	}
 	@Override
 	protected void onSystemBarsVisible() {
