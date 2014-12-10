@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.opencv.android.local.Recognizer;
+
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.hardware.Camera;
@@ -14,8 +16,7 @@ import android.view.Display;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.richert.tagtracker.recognizer.RecognizeActivity;
-import com.richert.tagtracker.recognizer.Recognizer;
+import com.richert.tagtracker.views.RecognizeActivity;
 
 public class PerformanceTester implements Runnable{
 	private static final String TAG = PerformanceTester.class.getSimpleName();

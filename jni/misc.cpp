@@ -6,7 +6,7 @@ using namespace cv;
 #define APPNAME "Native"
 
 extern "C" {
-JNIEXPORT jobject JNICALL Java_com_richert_tagtracker_natUtils_Misc_yuvToRgbNtv(JNIEnv* env, jobject\
+JNIEXPORT jobject JNICALL Java_org_opencv_android_local_Misc_yuvToRgbNtv(JNIEnv* env, jobject\
 		, jlong addrYuv, jint rotation){
     Mat& mYuv = *(Mat*)addrYuv;
     Mat mRGB(mYuv.rows,mYuv.cols,CV_8UC3);

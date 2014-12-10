@@ -122,12 +122,12 @@ public:
 
 
 extern "C" {
-JNIEXPORT jlong JNICALL Java_com_richert_tagtracker_calibrator_Calibrator_newCalibratorNtv(JNIEnv* env, jobject\
+JNIEXPORT jlong JNICALL Java_org_opencv_android_local_Calibrator_newCalibratorNtv(JNIEnv* env, jobject\
 		, jint x, jint y){
 	CameraCalibrator*calibrator = new CameraCalibrator(x,y);
 	return (jlong)calibrator;
 }
-JNIEXPORT void JNICALL Java_com_richert_tagtracker_calibrator_Calibrator_delCalibratorNtv(JNIEnv* env, jobject\
+JNIEXPORT void JNICALL Java_org_opencv_android_local_Calibrator_delCalibratorNtv(JNIEnv* env, jobject\
 		,jlong calibratorAddr){
 	if(calibratorAddr != 0){
 
@@ -135,7 +135,7 @@ JNIEXPORT void JNICALL Java_com_richert_tagtracker_calibrator_Calibrator_delCali
 		delete calibrator;
 	}
 }
-JNIEXPORT jobjectArray JNICALL Java_com_richert_tagtracker_calibrator_Calibrator_detectChessBoardNtv(JNIEnv* env, jobject\
+JNIEXPORT jobjectArray JNICALL Java_org_opencv_android_local_Calibrator_detectChessBoardNtv(JNIEnv* env, jobject\
 		,jlong calibratorAddr,jlong addrYuv, jint rotation){
     Mat& mYuv = *(Mat*)addrYuv;
 	if(calibratorAddr != 0){
@@ -168,21 +168,21 @@ JNIEXPORT jobjectArray JNICALL Java_com_richert_tagtracker_calibrator_Calibrator
 	}
 }
 
-JNIEXPORT void JNICALL Java_com_richert_tagtracker_calibrator_Calibrator_addFrameToSetNtv(JNIEnv* env, jobject\
+JNIEXPORT void JNICALL Java_org_opencv_android_local_Calibrator_addFrameToSetNtv(JNIEnv* env, jobject\
 		,jlong calibratorAddr){
 	if(calibratorAddr != 0){
 		CameraCalibrator*calibrator = (CameraCalibrator*)calibratorAddr;
 		calibrator->addFrameToSet();
 	}
 }
-JNIEXPORT void JNICALL Java_com_richert_tagtracker_calibrator_Calibrator_processFramesNtv(JNIEnv* env, jobject\
+JNIEXPORT void JNICALL Java_org_opencv_android_local_Calibrator_processFramesNtv(JNIEnv* env, jobject\
 		,jlong calibratorAddr){
 	if(calibratorAddr != 0){
 		CameraCalibrator*calibrator = (CameraCalibrator*)calibratorAddr;
 		calibrator->processFrames();
 	}
 }
-JNIEXPORT jobject JNICALL Java_com_richert_tagtracker_calibrator_Calibrator_getCameraMatrixNtv(JNIEnv* env, jobject\
+JNIEXPORT jobject JNICALL Java_org_opencv_android_local_Calibrator_getCameraMatrixNtv(JNIEnv* env, jobject\
 		,jlong calibratorAddr){
 	if(calibratorAddr != 0){
 		CameraCalibrator*calibrator = (CameraCalibrator*)calibratorAddr;
@@ -191,7 +191,7 @@ JNIEXPORT jobject JNICALL Java_com_richert_tagtracker_calibrator_Calibrator_getC
 		return NULL;
 	}
 }
-JNIEXPORT jobject JNICALL Java_com_richert_tagtracker_calibrator_Calibrator_getDistortionCoefficientNtv(JNIEnv* env, jobject\
+JNIEXPORT jobject JNICALL Java_org_opencv_android_local_Calibrator_getDistortionCoefficientNtv(JNIEnv* env, jobject\
 		,jlong calibratorAddr){
 	if(calibratorAddr != 0){
 		CameraCalibrator*calibrator = (CameraCalibrator*)calibratorAddr;

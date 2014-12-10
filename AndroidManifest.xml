@@ -33,25 +33,19 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".MainActivity"
+            android:name=".views.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
-				<action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-            </intent-filter>
-            <meta-data
-      			android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" 
-      			android:resource="@xml/device_filter" />
         </activity>
         <activity
-            android:name="com.richert.tagtracker.LogcatActivity"
+            android:name="com.richert.tagtracker.views.LogcatActivity"
             android:label="@string/title_activity_logcat">
         </activity>
         <activity
-            android:name=".recognizer.RecognizeActivity"
+            android:name="com.richert.tagtracker.views.RecognizeActivity"
         	android:hardwareAccelerated="true"
             android:screenOrientation="landscape"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -60,30 +54,40 @@
             android:launchMode="singleInstance" >
         </activity>
         <activity
-            android:name=".markergen.MarkerGeneratorActivity"
+            android:name="com.richert.tagtracker.views.MarkerGeneratorActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_marker_generator"
             android:theme="@style/android:Theme.Material" >
         </activity>
         <activity
-            android:name=".driver.DriverActivity"
+            android:name="com.richert.tagtracker.views.DriverActivity"
             android:label="@string/title_activity_driver"
             android:launchMode="singleInstance">
         </activity>
         <activity
-            android:name=".AboutActivity"
+            android:name=".views.AboutActivity"
             android:label="@string/title_activity_about"
             android:theme="@style/android:Theme.Material" >
         </activity>
         <activity
-            android:name=".LicencesActivity"
+            android:name=".views.LicencesActivity"
             android:label="@string/title_activity_licences"
             android:theme="@style/android:Theme.Material" >
         </activity>
         <activity
-            android:name=".OtherCodesActivity"
+            android:name=".views.OtherCodesActivity"
             android:label="@string/title_activity_driver">
         </activity>
+        <service
+            android:name=".service.UsbConnectionService"
+            android:exported="false">
+            <intent-filter>
+				<action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data
+      			android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" 
+      			android:resource="@xml/device_filter" />
+        </service>
         
     </application>
 

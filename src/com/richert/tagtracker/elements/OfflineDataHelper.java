@@ -27,7 +27,7 @@ public class OfflineDataHelper {
 		if (!OpenCVLoader.initDebug()) {
 	        // Handle initialization error
 	    } else {
-	    	
+	    	//TODO
 	    }
 	}
 	private final static String TAG=OfflineDataHelper.class.getSimpleName();

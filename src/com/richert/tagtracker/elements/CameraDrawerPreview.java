@@ -1,14 +1,14 @@
 package com.richert.tagtracker.elements;
 
 import org.opencv.android.Utils;
+import org.opencv.android.local.Misc;
 import org.opencv.core.CvException;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import com.richert.tagtracker.driver.DriverActivity;
-import com.richert.tagtracker.natUtils.Misc;
+import com.richert.tagtracker.views.DriverActivity;
 
 import android.app.Activity;
 import android.content.Context;
