@@ -297,7 +297,7 @@ public class CameraDrawerPreview extends ViewGroup {
 				camera.release();
 				camera=null;
 			}
-			for(int c=0;c<10 || camera == null; c++){
+			for(int c=0;c<10 && camera == null; c++){
 				try {
 					camera = Camera.open();
 					camera.setPreviewDisplay(this.surfaceHolder);
@@ -308,6 +308,9 @@ public class CameraDrawerPreview extends ViewGroup {
 						camera=null;
 					}
 				} 
+			}
+			if(camera == null){
+				//TODO no camera error
 			}
 		}
 		@Override
