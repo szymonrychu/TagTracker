@@ -95,35 +95,36 @@ containing a value of this type.
         public static final int tag9=0x7f020021;
     }
     public static final class id {
-        public static final int RelativeLayout1=0x7f0a000b;
+        public static final int RelativeLayout1=0x7f0a000c;
         public static final int any=0x7f0a0000;
         public static final int back=0x7f0a0001;
-        public static final int butt_main_driver=0x7f0a0008;
-        public static final int butt_main_marker_gen=0x7f0a0009;
-        public static final int butt_main_recognize=0x7f0a0007;
-        public static final int drive_action_debug=0x7f0a0012;
+        public static final int butt_main_driver=0x7f0a0009;
+        public static final int butt_main_marker_gen=0x7f0a000a;
+        public static final int butt_main_recognize=0x7f0a0008;
+        public static final int drive_action_debug=0x7f0a0013;
         public static final int driver_driverView=0x7f0a0005;
         public static final int driver_imageView=0x7f0a0003;
         public static final int front=0x7f0a0002;
-        public static final int fullscreen_content_controls=0x7f0a000f;
+        public static final int fullscreen_content_controls=0x7f0a0010;
         public static final int licences_text_view=0x7f0a0006;
+        public static final int logcat_clear_button=0x7f0a0007;
         public static final int logcat_text_view=0x7f0a0004;
-        public static final int main_action_about=0x7f0a0013;
-        public static final int main_action_licences=0x7f0a0014;
-        public static final int main_action_logcat=0x7f0a0015;
-        public static final int main_action_othercode=0x7f0a0016;
-        public static final int marker_image_view=0x7f0a000c;
-        public static final int marker_text_view=0x7f0a000d;
-        public static final int markergen_listview=0x7f0a000a;
-        public static final int othercode_text_view=0x7f0a000e;
-        public static final int recognize_action_debug=0x7f0a001a;
-        public static final int recognize_action_graph=0x7f0a001b;
-        public static final int recognize_action_resolution=0x7f0a0017;
-        public static final int recognize_action_set_tag=0x7f0a0018;
-        public static final int recognize_action_set_threads=0x7f0a0019;
-        public static final int recognize_force_speaking=0x7f0a001c;
-        public static final int recognize_preview=0x7f0a0010;
-        public static final int screenshot_button=0x7f0a0011;
+        public static final int main_action_about=0x7f0a0014;
+        public static final int main_action_licences=0x7f0a0015;
+        public static final int main_action_logcat=0x7f0a0016;
+        public static final int main_action_othercode=0x7f0a0017;
+        public static final int marker_image_view=0x7f0a000d;
+        public static final int marker_text_view=0x7f0a000e;
+        public static final int markergen_listview=0x7f0a000b;
+        public static final int othercode_text_view=0x7f0a000f;
+        public static final int recognize_action_debug=0x7f0a001b;
+        public static final int recognize_action_graph=0x7f0a001c;
+        public static final int recognize_action_resolution=0x7f0a0018;
+        public static final int recognize_action_set_tag=0x7f0a0019;
+        public static final int recognize_action_set_threads=0x7f0a001a;
+        public static final int recognize_force_speaking=0x7f0a001d;
+        public static final int recognize_preview=0x7f0a0011;
+        public static final int screenshot_button=0x7f0a0012;
     }
     public static final class layout {
         public static final int activity_about=0x7f030000;
@@ -167,6 +168,7 @@ containing a value of this type.
         public static final int butt_main_generate_str=0x7f07000b;
         public static final int butt_main_logcat_str=0x7f070012;
         public static final int butt_main_recognize_str=0x7f070005;
+        public static final int logcat_clear_button_string=0x7f070062;
         public static final int main_action_about=0x7f070002;
         public static final int main_action_licences=0x7f070003;
         public static final int main_action_logcat=0x7f070013;

@@ -8,7 +8,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import com.richert.tagtracker.views.DriverActivity;
+import com.richert.tagtracker.activities.DriverActivity;
 
 import android.app.Activity;
 import android.content.Context;

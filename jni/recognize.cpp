@@ -136,9 +136,7 @@ private:
 public:
 	Size imageSize;
 	int rotation;
-	Recognizer(Size imageSize){
-		this->outline = (imageSize.width + imageSize.height) * 2;
-		this->imageSize = imageSize;
+	Recognizer(){
 		this->blockSize = 45;
 		this->adaptThresh = 5.0;
 		this->maxTagSize = 0.99;
@@ -248,38 +246,45 @@ public:
 
 };
 extern "C"{
-JNIEXPORT jlong JNICALL Java_org_opencv_android_local_Recognizer_newRecognizerNtv(JNIEnv* env, jobject\
+JNIEXPORT jlong JNICALL Java_org_opencv_android_local_RecognizerService_newRecognizerNtv(JNIEnv* env, jobject\
 		, jint width, jint height){
-    Recognizer*recognizer = new Recognizer(Size(width,height));
+    Recognizer*recognizer = new Recognizer();
 	return (jlong)recognizer;
 }
-JNIEXPORT void JNICALL Java_org_opencv_android_local_Recognizer_delRecognizerNtv(JNIEnv* env, jobject\
+JNIEXPORT void JNICALL Java_org_opencv_android_local_RecognizerService_delRecognizerNtv(JNIEnv* env, jobject\
 		,jlong calibratorAddr){
 	if(calibratorAddr != 0){
 		Recognizer*recognizer = (Recognizer*)calibratorAddr;
 		delete recognizer;
 	}
 }
-JNIEXPORT jobjectArray JNICALL Java_org_opencv_android_local_Recognizer_findTagsNtv(JNIEnv* env, jobject\
+JNIEXPORT jobjectArray JNICALL Java_org_opencv_android_local_RecognizerService_findTagsNtv(JNIEnv* env, jobject\
 		,jlong recognizerAddr,jlong addrYuv){
 	Mat& mYuv = *(Mat*)addrYuv;
 	if(recognizerAddr != 0){
 		Recognizer*recognizer = (Recognizer*)recognizerAddr;
-		vector<Geometry::Tag> tags = recognizer->recognizeTags(mYuv);
-		if(tags.size()>0){
-			jobjectArray result = env->NewObjectArray(tags.size(),jTagCls,tags.at(0).toJava(env,recognizer->rotation,recognizer->imageSize));
-			for(int c=1;c<tags.size();c++){
-				env->SetObjectArrayElement(result,c,tags.at(c).toJava(env,recognizer->rotation,recognizer->imageSize));
+
+		try{
+			vector<Geometry::Tag> tags = recognizer->recognizeTags(mYuv);
+			if(tags.size()>0){
+				jobjectArray result = env->NewObjectArray(tags.size(),jTagCls,tags.at(0).toJava(env,recognizer->rotation,recognizer->imageSize));
+				for(int c=1;c<tags.size();c++){
+					env->SetObjectArrayElement(result,c,tags.at(c).toJava(env,recognizer->rotation,recognizer->imageSize));
+				}
+				return result;
+			}else{
+				return NULL;
 			}
-			return result;
-		}else{
+		}catch (Exception e) {
 			return NULL;
 		}
+
+
 	}else{
 		return NULL;
 	}
 }
-JNIEXPORT void JNICALL Java_org_opencv_android_local_Recognizer_notifySizeChangedNtv(JNIEnv* env, jobject\
+JNIEXPORT void JNICALL Java_org_opencv_android_local_RecognizerService_notifySizeChangedNtv(JNIEnv* env, jobject\
 		,jlong recognizerAddr,jint width, jint height, jint rotation){
 	if(recognizerAddr != 0){
 		Recognizer*recognizer = (Recognizer*)recognizerAddr;

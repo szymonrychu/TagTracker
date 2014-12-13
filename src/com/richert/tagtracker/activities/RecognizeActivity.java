@@ -1,4 +1,4 @@
-package com.richert.tagtracker.views;
+package com.richert.tagtracker.activities;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -12,8 +12,10 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.local.LoadBalancer.InvalidStateException;
 import org.opencv.android.local.Misc;
-import org.opencv.android.local.Recognizer;
+import org.opencv.android.local.RecognizerService;
+import org.opencv.android.local.RecognizerService.ProcessingCallback;
 import org.opencv.android.local.Tag;
 import org.opencv.core.Mat;
 
@@ -37,10 +39,13 @@ import com.richert.tagtracker.elements.CameraDrawerPreview.CameraSetupCallback;
 import com.richert.tagtracker.elements.TextToSpeechToText;
 import com.richert.tagtracker.elements.TextToSpeechToText.SpeechToTextListener;
 import com.richert.tagtracker.elements.ThreadDialog;
+import com.richert.tagtracker.services.UsbConnectionService;
 
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.ServiceConnection;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
@@ -53,10 +58,15 @@ import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.Camera.Area;
 import android.hardware.Camera.Parameters;
+import android.hardware.usb.UsbConfiguration;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.test.PerformanceTestCase;
 import android.util.Log;
 import android.util.SparseArray;
@@ -68,20 +78,20 @@ import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.animation.RotateAnimation;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class RecognizeActivity extends FullScreenActivity implements CameraSetupCallback, CameraProcessingCallback, SpeechToTextListener{
 	private final static String TAG=RecognizeActivity.class.getSimpleName();
 	private static final int ID = RecognizeActivity.class.hashCode();
 	private CameraDrawerPreview preview = null;
 	private Camera.Parameters params = null;
-	private Recognizer recognizer;
+	private RecognizerService recognizer;
 	private OfflineDataHelper helper;
 	private int rotation=0;
 	private int camWidth, camHeight;
 	private int viewWidth, viewHeight;
 	private Tag[] tags;
 	private Paint greenPaint, redPaint, bluePaint;
-	private DriverHelper driverHelper;
 	public int trackedID = -1;
 	private TextToSpeechToText ttstt;
 	private Boolean asked = false;
@@ -99,6 +109,25 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private boolean speak = true;
 	private boolean forceSpeaking = false;
 	private LanguageHelper langHelper;
+	//binders 
+	private UsbConnectionService.UsbDataCommunicationBinder usbBinder;
+	private RecognizerService.MatProcessingBinder matBinder;
+	private Intent startUsbService;
+	private Intent startRecognizerService;
+	public class PostProcessing implements ProcessingCallback{
+		
+		@Override
+		public void post(Tag[] tagz) {
+			tags = tagz;
+			preview.requestRefresh();
+			// TODO Auto-generated method stub
+			
+		}
+	}
+
+	ServiceConnection usbConnection;
+	ServiceConnection recognizerConnection;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_recognize);
@@ -127,7 +156,6 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			t = false;
 		}
 		cpuInfo = new CpuInfo(300);
-		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
 
 		screenshotButton = (Button) findViewById(R.id.screenshot_button);
 		screenshotButton.setOnClickListener(new OnClickListener() {
@@ -149,26 +177,88 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		langHelper = new LanguageHelper(this);
 		ttstt = new TextToSpeechToText(this, langHelper);
 		ttstt.setSpeechToTextListener(this);
+		
+		
 		super.onCreate(savedInstanceState);
 	}
 	@Override
 	protected void onResume() {
+		//TODO connect to service Bound service
+		
+		startRecognizerService = new Intent(this, RecognizerService.class);
+		startService(startRecognizerService);
+		recognizerConnection = new ServiceConnection() {
+
+			@Override
+			public void onServiceConnected(ComponentName name, IBinder service) {
+				Log.v(TAG, "connected to service");
+				matBinder = (RecognizerService.MatProcessingBinder) service;
+				matBinder.setProcessingCallback(new PostProcessing());
+				try {
+					matBinder.setMaxPoolSize(10);
+					matBinder.setMaxThreadsNum(5);
+				} catch (InvalidStateException e) {
+					Toast.makeText(getBaseContext(), "Set threads and pool num failed!", Toast.LENGTH_SHORT).show();
+					Log.e(TAG,"Set threads and pool num failed!");
+				}
+				try {
+					matBinder.startProcessing();
+				} catch (InterruptedException e) {}
+			}
+			@Override
+			public void onServiceDisconnected(ComponentName name) {
+				Log.v(TAG, "disconnected from service");
+				try {
+					matBinder.stopProcessing();
+				} catch (InterruptedException e) {}
+				matBinder = null;
+			}
+			
+		};
+		if(bindService(startRecognizerService,  recognizerConnection, Context.BIND_AUTO_CREATE)){
+			Log.v(TAG, "binded to recognizer service!");
+		}else{
+			Log.v(TAG, "not connected to recognizer service!");
+		}
+		
+		startUsbService = new Intent(this, UsbConnectionService.class);
+		startService(startUsbService);
+		usbConnection = new ServiceConnection() {
+
+			@Override
+			public void onServiceConnected(ComponentName name, IBinder service) {
+				usbBinder = (UsbConnectionService.UsbDataCommunicationBinder) service;
+				// TODO Auto-generated method stub
+				
+			}
+			@Override
+			public void onServiceDisconnected(ComponentName name) {
+				usbBinder = null;
+			}
+			
+		};
+		
+		if(bindService(startUsbService, usbConnection, Context.BIND_AUTO_CREATE)){
+			Log.v(TAG, "binded to usb service!");
+		}else{
+			Log.v(TAG, "not connected to usb service!");
+		}
 		this.speak = true;
-		driverHelper.startMonitor(this);
 		cpuInfo.startReading();
 		super.onResume();
 	}
 	@Override
 	protected void onPause() {
-		if(driverHelper != null){
-			driverHelper.unregisterReceiver();
-		}
 		ttstt.onPause();
 		this.speak = false;
 		cpuInfo.stopReading();
 		if(tester != null){
 			tester.stopTests();
 		}
+		unbindService(usbConnection);
+		
+		unbindService(recognizerConnection);
+		stopService(startRecognizerService);
 		super.onPause();
 	}
 	@Override
@@ -191,7 +281,9 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 					WindowManager manager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 					Display display = (manager).getDefaultDisplay();
 					rotation = display.getRotation();
-					recognizer.notifySizeChanged(size, rotation);
+					if(matBinder != null){
+						matBinder.notifySizeChanged(size, rotation);
+					}
 					helper.setResolution(size);
 				}
 			};
@@ -210,7 +302,11 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			ThreadDialog threadDialog = new ThreadDialog(8) {
 				@Override
 				public void onListItemClick(DialogInterface dialog, Integer num) {
-			        preview.setMaxThreads(num);
+			        try {
+						matBinder.setMaxThreadsNum(num);
+					} catch (InvalidStateException e) {
+						Toast.makeText(getBaseContext(), "Set threads num failed!", Toast.LENGTH_SHORT).show();
+					}
 				}
 			};
 			threadDialog.show(getFragmentManager(), "threadz");
@@ -249,8 +345,11 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	}
 	@Override
 	public void processImage(Mat yuvFrame, Thread thiz) {
-		tags = recognizer.findTags(yuvFrame, rotation);
-		preview.requestRefresh();
+		if(matBinder != null){
+			matBinder.processMat(yuvFrame);
+		}else{
+			Log.d(TAG, "not connected to service!");
+		}
 	}
 
 	private void drawTag(Tag tag, Canvas canvas, Paint paint){
@@ -286,7 +385,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		if(diff){
 			confidenceCounter++;
 			if(confidenceCounter>30){
-				speak = driverHelper.transreceiving();
+				speak = true;//TODO driverHelper.transreceiving();
 				confidenceCounter=0;
 				trackedID = -1;
 				tagMap = newTagMap;
@@ -331,10 +430,10 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private void drawDebugInfo(Canvas canvas){
 		int Y = 50;
 		if(showDebug){
-			canvas.drawText("Preview state: " + preview.getState(), 30, Y+=30, bluePaint);
+			/*canvas.drawText("Preview state: " + preview.getState(), 30, Y+=30, bluePaint);
 			canvas.drawText("Driver state: " + driverHelper.getState(), 30, Y+=30, bluePaint);
 			canvas.drawText("Device: "+driverHelper.getDeviceInfo(), 30, Y+=30, bluePaint);
-			canvas.drawText("Driver buffer: " + driverHelper.getBuffer(), 30, Y+=30, bluePaint);
+			canvas.drawText("Driver buffer: " + driverHelper.getBuffer(), 30, Y+=30, bluePaint);*/
 			for(int coreNum = 0; coreNum < cpuInfo.getNumCores(); coreNum++){
 				canvas.drawText(cpuInfo.getCpuUsage(coreNum), 30, Y+=30, bluePaint);
 			}
@@ -358,12 +457,16 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 					drawTagPreview(tag, canvas, greenPaint);
 					float z = (float)5*((tag.center.y)-0.5f);
 					mY += z;
-					driverHelper.steer((float)(3*((tag.center.x)-0.5f)),-1.0f,meanY);
+					if(usbBinder != null){
+						usbBinder.steer((float)(3*((tag.center.x)-0.5f)),-1.0f,meanY);
+					}
 					
 				}else{
 					drawTag(tag, canvas, redPaint);
 					drawTagPreview(tag, canvas, redPaint);
-					driverHelper.steer(0,0,meanY);
+					if(usbBinder != null){
+						usbBinder.steer(0,0,meanY);
+					}
 					float z = (float)5*((tag.center.y)-0.5f);
 					mY += z;
 				}
@@ -379,7 +482,9 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			
 			
 		}else{
-			driverHelper.steer(0,0,meanY);
+			if(usbBinder != null){
+				usbBinder.steer(0,0,meanY);
+			}
 		}
 		drawDebugInfo(canvas);
 		askIfChanged();
@@ -416,7 +521,9 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		viewHeight = height;
 		viewWidth = width;
 		Log.v(TAG,"params.getPreviewSize()=w:"+params.getPreviewSize().width+":h:"+params.getPreviewSize().height);
-		recognizer.notifySizeChanged(params.getPreviewSize(), rotation);
+		if(matBinder != null){
+			matBinder.notifySizeChanged(params.getPreviewSize(), rotation);
+		}
 	}
 	private ProgressDialog progress;
 	private void showProgressDialog(int maxStates){
@@ -473,8 +580,10 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		camWidth = helper.getResolutionWidth(params.getPreviewSize().width);
 		camHeight = helper.getResolutionHeight(params.getPreviewSize().height);
 		params.setPreviewSize(camWidth, camHeight);
-		recognizer = new Recognizer(width, height);
-		recognizer.notifySizeChanged(params.getPreviewSize(), rotation);
+		recognizer = new RecognizerService();
+		if(matBinder != null){
+			matBinder.notifySizeChanged(params.getPreviewSize(), rotation);
+		}
 		tester = new PerformanceTester(this, preview, recognizer, cpuInfo, helper);
 		tester.addTestResultCallback(new TestResultCallback() {
 			
@@ -573,4 +682,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			errorCounter++;
 		}
 	}
+	
+	
+	
 }

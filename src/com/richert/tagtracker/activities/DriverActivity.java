@@ -1,4 +1,4 @@
-package com.richert.tagtracker.views;
+package com.richert.tagtracker.activities;
 
 import java.io.UnsupportedEncodingException;
 import java.sql.Driver;
@@ -46,7 +46,6 @@ public class DriverActivity extends Activity implements Callback, Runnable, Cont
 	private int refreshMs;
 	private Paint paint;
 	private ControlsHelper controlsHelper;
-	private DriverHelper driverHelper;
 	private Boolean showDebug;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +63,6 @@ public class DriverActivity extends Activity implements Callback, Runnable, Cont
 		paint.setColor(Color.RED);
 		controlsHelper = new ControlsHelper(driverView);
 		controlsHelper.setControlsCallback(this);
-		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
 		showDebug = false;
 	}
 	void drawControls(Canvas canvas){
@@ -72,14 +70,10 @@ public class DriverActivity extends Activity implements Callback, Runnable, Cont
 	}
 	@Override
 	protected void onResume() {
-		driverHelper.startMonitor(this);
 		super.onResume();
 	}
 	@Override
 	protected void onPause() {
-		if(driverHelper != null){
-			driverHelper.unregisterReceiver();
-		}
 		super.onPause();
 	}
 
@@ -138,9 +132,9 @@ public class DriverActivity extends Activity implements Callback, Runnable, Cont
 	public void redraw(Canvas canvas){
 		if(showDebug){
 			float Y = 50;
-			canvas.drawText("Status: "+driverHelper.getState(), 50, Y+=50, paint);
+			/*canvas.drawText("Status: "+driverHelper.getState(), 50, Y+=50, paint);
 			canvas.drawText("Device: "+driverHelper.getDeviceInfo(), 50, Y+=50, paint);
-			canvas.drawText("Driver buffer: " + driverHelper.getBuffer(), 50, Y+=50, paint);
+			canvas.drawText("Driver buffer: " + driverHelper.getBuffer(), 50, Y+=50, paint);*/
 		}
 		controlsHelper.drawControls(canvas);
 	}
@@ -164,7 +158,6 @@ public class DriverActivity extends Activity implements Callback, Runnable, Cont
 	
 	@Override
 	public void getPivotPosition(float procX, float procY) {
-		driverHelper.steer(procX,procY,0);
 		
 		// TODO Auto-generated method stub
 		

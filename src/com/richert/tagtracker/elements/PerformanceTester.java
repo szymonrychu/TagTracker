@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opencv.android.local.Recognizer;
+import org.opencv.android.local.RecognizerService;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -16,7 +16,7 @@ import android.view.Display;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.richert.tagtracker.views.RecognizeActivity;
+import com.richert.tagtracker.activities.RecognizeActivity;
 
 public class PerformanceTester implements Runnable{
 	private static final String TAG = PerformanceTester.class.getSimpleName();
@@ -29,7 +29,7 @@ public class PerformanceTester implements Runnable{
 	private Thread tester;
 	private RecognizeActivity subject;
 	private CameraDrawerPreview preview;
-	private Recognizer recognizer;
+	private RecognizerService recognizer;
 	private CpuInfo cpuInfo;
 	private OfflineDataHelper helper;
 	private long testTime = 15;
@@ -69,7 +69,7 @@ public class PerformanceTester implements Runnable{
 		public int frequencies[] ;
 		public float data[];
 	}
-	public PerformanceTester(RecognizeActivity subject, CameraDrawerPreview preview, Recognizer recognizer, CpuInfo cpuInfo, OfflineDataHelper helper) {
+	public PerformanceTester(RecognizeActivity subject, CameraDrawerPreview preview, RecognizerService recognizer, CpuInfo cpuInfo, OfflineDataHelper helper) {
 		this.subject = subject;
 		this.preview = preview;
 		this.recognizer = recognizer;
@@ -113,7 +113,7 @@ public class PerformanceTester implements Runnable{
 		WindowManager manager = (WindowManager) subject.getSystemService(Context.WINDOW_SERVICE);
 		Display display = (manager).getDefaultDisplay();
 		int rotation = display.getRotation();
-		recognizer.notifySizeChanged(size, rotation);
+		//recognizer.notifySizeChanged(size, rotation);
 	}
 	private void setThreadNum(int num){
 		preview.setMaxThreads(num);

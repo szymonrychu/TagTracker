@@ -1,4 +1,4 @@
-package com.richert.tagtracker.views;
+package com.richert.tagtracker.activities;
 
 import java.util.Arrays;
 import java.util.List;

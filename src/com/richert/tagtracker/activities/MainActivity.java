@@ -1,8 +1,10 @@
-package com.richert.tagtracker.views;
+package com.richert.tagtracker.activities;
 
 import java.util.Locale;
 
 import org.opencv.android.local.Misc;
+import org.opencv.android.local.RecognizerService;
+import org.opencv.core.Mat;
 
 import android.app.Activity;
 import android.content.Context;
@@ -10,6 +12,8 @@ import android.content.Intent;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
+import android.os.Messenger;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.view.Menu;
@@ -65,11 +69,12 @@ public class MainActivity extends Activity implements Runnable{
 			
 		});
 		tts.shutdown();
-		
 	}
 	
 	@Override
 	protected void onResume() {
+		
+		
 		recognizeButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -96,6 +101,9 @@ public class MainActivity extends Activity implements Runnable{
 				startActivity(generate);
 			}
 		});
+		
+		
+		
 		super.onResume();
 	}
 	@Override
@@ -112,6 +120,7 @@ public class MainActivity extends Activity implements Runnable{
 	@Override
 	protected void onPause() {
 		super.onPause();
+		//TODO
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

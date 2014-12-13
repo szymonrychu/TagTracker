@@ -2,6 +2,9 @@ package com.richert.tagtracker.elements;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Random;
+
+import com.richert.tagtracker.services.UsbConnectionService;
 
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -154,6 +157,8 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
     	filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
     	filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
     	this.context.registerReceiver(this, filter);
+    	
+		
     	work = true;
     	worker = new Thread(this);
     	worker.start();
@@ -174,6 +179,63 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
 
         return lineEncodingRequest;
     }
+    private void openDevice(){
+    	usbConnection = usbManager.openDevice(usbDevice);
+        if(usbConnection != null){
+        	UsbInterface usbInterface = usbDevice.getInterface(1);
+            if(!usbConnection.claimInterface(usbInterface, true)){
+            	usbConnection.close();
+            	usbConnection = null;
+            }else{
+            	final int RQSID_SET_LINE_CODING = 0x20;
+	            final int RQSID_SET_CONTROL_LINE_STATE = 0x22;
+	            
+	            
+	            int usbResult;
+	            usbResult = usbConnection.controlTransfer(
+	              0x21,        //requestType
+	              RQSID_SET_CONTROL_LINE_STATE, //SET_CONTROL_LINE_STATE 
+	              0,     //value
+	              0,     //index
+	              null,    //buffer
+	              0,     //length
+	              0);    //timeout
+	            //baud rate = 9600
+	            //8 data bit
+	            //1 stop bit
+	            byte[] encodingSetting = 
+	              new byte[] {(byte)0x80, 0x25, 0x00, 0x00, 0x00, 0x00, 0x08 };
+	            usbResult = usbConnection.controlTransfer(
+	              0x21,       //requestType
+	              RQSID_SET_LINE_CODING,   //SET_LINE_CODING
+	              0,      //value
+	              0,      //index
+	              encodingSetting,  //buffer
+	              7,      //length
+	              0);     //timeout
+	            
+	            
+	            
+	            
+	            for (int i = 0; i < usbInterface.getEndpointCount(); i++) {
+	                if (usbInterface.getEndpoint(i).getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
+	                    if (usbInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN) {
+	                        inEndpoint = usbInterface.getEndpoint(i);
+	                    } else if (usbInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_OUT) {
+	                        outEndpoint = usbInterface.getEndpoint(i);
+	                    }
+	                }
+	            }
+	            
+	            if (inEndpoint == null || outEndpoint == null) {
+	                Log.e(TAG, "No endpoint found!");
+	                usbConnection.close();
+	                usbConnection = null;
+	            }
+            }
+        }
+    }
+    Intent intent;
 	@Override
 	public void run() {
 		while(work){
@@ -190,62 +252,16 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
 		            usbDevice = deviceIterator.next();
 		        }
 		        if (usbDevice != null)  {
-	        		//usbManager.requestPermission(usbDevice, pendIntent);
-		            usbConnection = usbManager.openDevice(usbDevice);
-		            if(usbConnection != null){
-		            	UsbInterface usbInterface = usbDevice.getInterface(1);
-			            if(!usbConnection.claimInterface(usbInterface, true)){
-			            	usbConnection.close();
-			            	usbConnection = null;
-			            }else{
-			            	final int RQSID_SET_LINE_CODING = 0x20;
-				            final int RQSID_SET_CONTROL_LINE_STATE = 0x22;
-				            
-				            
-				            int usbResult;
-				            usbResult = usbConnection.controlTransfer(
-				              0x21,        //requestType
-				              RQSID_SET_CONTROL_LINE_STATE, //SET_CONTROL_LINE_STATE 
-				              0,     //value
-				              0,     //index
-				              null,    //buffer
-				              0,     //length
-				              0);    //timeout
-				            //baud rate = 9600
-				            //8 data bit
-				            //1 stop bit
-				            byte[] encodingSetting = 
-				              new byte[] {(byte)0x80, 0x25, 0x00, 0x00, 0x00, 0x00, 0x08 };
-				            usbResult = usbConnection.controlTransfer(
-				              0x21,       //requestType
-				              RQSID_SET_LINE_CODING,   //SET_LINE_CODING
-				              0,      //value
-				              0,      //index
-				              encodingSetting,  //buffer
-				              7,      //length
-				              0);     //timeout
-				            
-				            
-				            
-				            
-				            for (int i = 0; i < usbInterface.getEndpointCount(); i++) {
-				                if (usbInterface.getEndpoint(i).getType() == UsbConstants.USB_ENDPOINT_XFER_BULK) {
-				                    if (usbInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN) {
-				                        inEndpoint = usbInterface.getEndpoint(i);
-				                    } else if (usbInterface.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_OUT) {
-				                        outEndpoint = usbInterface.getEndpoint(i);
-				                    }
-				                }
-				            }
-				            
-				            if (inEndpoint == null || outEndpoint == null) {
-				                Log.e(TAG, "No endpoint found!");
-				                usbConnection.close();
-				                usbConnection = null;
-				            }
-			            }
-		            }
-					
+		        	intent = new Intent(context, UsbConnectionService.class);
+		    		intent.putExtra(usbManager.EXTRA_PERMISSION_GRANTED, false);  // for extra data if needed..
+
+		    		Random generator = new Random();
+
+		    		PendingIntent i=PendingIntent.getActivity(context, generator.nextInt(), intent,PendingIntent.FLAG_UPDATE_CURRENT);
+		    		usbManager.requestPermission(usbDevice, i);
+		    		if(intent.getBooleanExtra(usbManager.EXTRA_PERMISSION_GRANTED, false)){
+						openDevice();
+		    		}
 		        }
 	        }
         	try {

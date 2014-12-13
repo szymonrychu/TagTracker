@@ -1,4 +1,4 @@
-package com.richert.tagtracker.views;
+package com.richert.tagtracker.activities;
 
 import com.richert.tagtracker.R;
 import com.richert.tagtracker.R.layout;

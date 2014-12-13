@@ -101,4 +101,5 @@
     <string name="num70th">seventieth</string>
     <string name="num80th">eightieth</string>
     <string name="num90th">ninetieth</string>
+    <string name="logcat_clear_button_string">Clear</string>
 </resources>
