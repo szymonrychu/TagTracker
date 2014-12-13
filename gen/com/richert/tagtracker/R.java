@@ -45,7 +45,7 @@ containing a value of this type.
         public static final int show_fps=0x7f010000;
     }
     public static final class color {
-        public static final int black_overlay=0x7f060000;
+        public static final int black_overlay=0x7f050000;
     }
     public static final class dimen {
         /**  Default screen margins, per the Android Design guidelines. 
@@ -55,8 +55,8 @@ containing a value of this type.
          would include 7" and 10" devices in landscape (~960dp and ~1280dp respectively).
     
          */
-        public static final int activity_horizontal_margin=0x7f070000;
-        public static final int activity_vertical_margin=0x7f070001;
+        public static final int activity_horizontal_margin=0x7f060000;
+        public static final int activity_vertical_margin=0x7f060001;
     }
     public static final class drawable {
         public static final int ic_launcher=0x7f020000;
@@ -95,35 +95,35 @@ containing a value of this type.
         public static final int tag9=0x7f020021;
     }
     public static final class id {
-        public static final int RelativeLayout1=0x7f05000b;
-        public static final int any=0x7f050000;
-        public static final int back=0x7f050001;
-        public static final int butt_main_driver=0x7f050008;
-        public static final int butt_main_marker_gen=0x7f050009;
-        public static final int butt_main_recognize=0x7f050007;
-        public static final int drive_action_debug=0x7f050012;
-        public static final int driver_driverView=0x7f050005;
-        public static final int driver_imageView=0x7f050003;
-        public static final int front=0x7f050002;
-        public static final int fullscreen_content_controls=0x7f05000f;
-        public static final int licences_text_view=0x7f050006;
-        public static final int logcat_text_view=0x7f050004;
-        public static final int main_action_about=0x7f050013;
-        public static final int main_action_licences=0x7f050014;
-        public static final int main_action_logcat=0x7f050015;
-        public static final int main_action_othercode=0x7f050016;
-        public static final int marker_image_view=0x7f05000c;
-        public static final int marker_text_view=0x7f05000d;
-        public static final int markergen_listview=0x7f05000a;
-        public static final int othercode_text_view=0x7f05000e;
-        public static final int recognize_action_debug=0x7f05001a;
-        public static final int recognize_action_graph=0x7f05001b;
-        public static final int recognize_action_resolution=0x7f050017;
-        public static final int recognize_action_set_tag=0x7f050018;
-        public static final int recognize_action_set_threads=0x7f050019;
-        public static final int recognize_force_speaking=0x7f05001c;
-        public static final int recognize_preview=0x7f050010;
-        public static final int screenshot_button=0x7f050011;
+        public static final int RelativeLayout1=0x7f0a000b;
+        public static final int any=0x7f0a0000;
+        public static final int back=0x7f0a0001;
+        public static final int butt_main_driver=0x7f0a0008;
+        public static final int butt_main_marker_gen=0x7f0a0009;
+        public static final int butt_main_recognize=0x7f0a0007;
+        public static final int drive_action_debug=0x7f0a0012;
+        public static final int driver_driverView=0x7f0a0005;
+        public static final int driver_imageView=0x7f0a0003;
+        public static final int front=0x7f0a0002;
+        public static final int fullscreen_content_controls=0x7f0a000f;
+        public static final int licences_text_view=0x7f0a0006;
+        public static final int logcat_text_view=0x7f0a0004;
+        public static final int main_action_about=0x7f0a0013;
+        public static final int main_action_licences=0x7f0a0014;
+        public static final int main_action_logcat=0x7f0a0015;
+        public static final int main_action_othercode=0x7f0a0016;
+        public static final int marker_image_view=0x7f0a000c;
+        public static final int marker_text_view=0x7f0a000d;
+        public static final int markergen_listview=0x7f0a000a;
+        public static final int othercode_text_view=0x7f0a000e;
+        public static final int recognize_action_debug=0x7f0a001a;
+        public static final int recognize_action_graph=0x7f0a001b;
+        public static final int recognize_action_resolution=0x7f0a0017;
+        public static final int recognize_action_set_tag=0x7f0a0018;
+        public static final int recognize_action_set_threads=0x7f0a0019;
+        public static final int recognize_force_speaking=0x7f0a001c;
+        public static final int recognize_preview=0x7f0a0010;
+        public static final int screenshot_button=0x7f0a0011;
     }
     public static final class layout {
         public static final int activity_about=0x7f030000;
@@ -137,110 +137,110 @@ containing a value of this type.
         public static final int activity_recognize=0x7f030008;
     }
     public static final class menu {
-        public static final int driver=0x7f0a0000;
-        public static final int generator=0x7f0a0001;
-        public static final int main=0x7f0a0002;
-        public static final int recognizer=0x7f0a0003;
+        public static final int driver=0x7f090000;
+        public static final int generator=0x7f090001;
+        public static final int main=0x7f090002;
+        public static final int recognizer=0x7f090003;
     }
     public static final class string {
-        public static final int DONT_SEE_TAGZ=0x7f08001b;
-        public static final int ERROR=0x7f080021;
-        public static final int ERROR_CODE_1=0x7f080023;
-        public static final int ERROR_CODE_2=0x7f080024;
-        public static final int ERROR_CODE_3=0x7f080025;
-        public static final int ERROR_CODE_4=0x7f080026;
-        public static final int ERROR_CODE_5=0x7f080027;
-        public static final int ERROR_CODE_6=0x7f080028;
-        public static final int ERROR_CODE_7=0x7f080029;
-        public static final int ERROR_CODE_8=0x7f08002a;
-        public static final int ERROR_CODE_9=0x7f08002b;
-        public static final int FATAL_ERROR=0x7f080022;
-        public static final int FOLLOWING=0x7f08001c;
-        public static final int IS_IT_OK=0x7f080020;
-        public static final int I_AM_NOT_SURE=0x7f08001e;
-        public static final int I_DIDNT_CATCH_THAT=0x7f08001d;
-        public static final int PLEASE_REPEAT=0x7f08001f;
-        public static final int WHAT_TAG_FOLLOW=0x7f08001a;
-        public static final int action_settings=0x7f080001;
-        public static final int app_name=0x7f080000;
-        public static final int butt_main_driver=0x7f080011;
-        public static final int butt_main_generate_str=0x7f08000b;
-        public static final int butt_main_logcat_str=0x7f080012;
-        public static final int butt_main_recognize_str=0x7f080005;
-        public static final int main_action_about=0x7f080002;
-        public static final int main_action_licences=0x7f080003;
-        public static final int main_action_logcat=0x7f080013;
-        public static final int main_action_othercode=0x7f080016;
-        public static final int main_mode_select_desc_str=0x7f080004;
-        public static final int num0=0x7f08002f;
-        public static final int num1=0x7f080030;
-        public static final int num10=0x7f080039;
-        public static final int num100=0x7f08004b;
-        public static final int num11=0x7f08003a;
-        public static final int num12=0x7f08003b;
-        public static final int num13=0x7f08003c;
-        public static final int num14=0x7f08003d;
-        public static final int num15=0x7f08003e;
-        public static final int num16=0x7f08003f;
-        public static final int num17=0x7f080040;
-        public static final int num18=0x7f080041;
-        public static final int num19=0x7f080042;
-        public static final int num1th=0x7f080054;
-        public static final int num2=0x7f080031;
-        public static final int num20=0x7f080043;
-        public static final int num200=0x7f08004c;
-        public static final int num20th=0x7f08005a;
-        public static final int num2th=0x7f080055;
-        public static final int num3=0x7f080032;
-        public static final int num30=0x7f080044;
-        public static final int num300=0x7f08004d;
-        public static final int num30th=0x7f08005b;
-        public static final int num3th=0x7f080056;
-        public static final int num4=0x7f080033;
-        public static final int num40=0x7f080045;
-        public static final int num400=0x7f08004e;
-        public static final int num40th=0x7f08005c;
-        public static final int num5=0x7f080034;
-        public static final int num50=0x7f080046;
-        public static final int num500=0x7f08004f;
-        public static final int num50th=0x7f08005d;
-        public static final int num5th=0x7f080057;
-        public static final int num6=0x7f080035;
-        public static final int num60=0x7f080047;
-        public static final int num600=0x7f080050;
-        public static final int num60th=0x7f08005e;
-        public static final int num7=0x7f080036;
-        public static final int num70=0x7f080048;
-        public static final int num700=0x7f080051;
-        public static final int num70th=0x7f08005f;
-        public static final int num8=0x7f080037;
-        public static final int num80=0x7f080049;
-        public static final int num800=0x7f080052;
-        public static final int num80th=0x7f080060;
-        public static final int num8th=0x7f080058;
-        public static final int num9=0x7f080038;
-        public static final int num90=0x7f08004a;
-        public static final int num900=0x7f080053;
-        public static final int num90th=0x7f080061;
-        public static final int num9th=0x7f080059;
-        public static final int numminus=0x7f08002e;
-        public static final int recognize_action_debug=0x7f080015;
-        public static final int recognize_action_graph=0x7f080018;
-        public static final int recognize_action_resolution=0x7f080008;
-        public static final int recognize_action_set_tag=0x7f080014;
-        public static final int recognize_action_set_threads=0x7f080017;
-        public static final int recognize_button_screenshot=0x7f080007;
-        public static final int recognizer_force_speaking=0x7f080019;
-        public static final int resolution_dialog_ok=0x7f080009;
-        public static final int response_no=0x7f08002d;
-        public static final int response_yes=0x7f08002c;
-        public static final int title_activity_about=0x7f08000c;
-        public static final int title_activity_driver=0x7f08000e;
-        public static final int title_activity_licences=0x7f08000d;
-        public static final int title_activity_logcat=0x7f08000f;
-        public static final int title_activity_marker_generator=0x7f08000a;
-        public static final int title_activity_othercode=0x7f080010;
-        public static final int title_activity_recognize=0x7f080006;
+        public static final int DONT_SEE_TAGZ=0x7f07001b;
+        public static final int ERROR=0x7f070021;
+        public static final int ERROR_CODE_1=0x7f070023;
+        public static final int ERROR_CODE_2=0x7f070024;
+        public static final int ERROR_CODE_3=0x7f070025;
+        public static final int ERROR_CODE_4=0x7f070026;
+        public static final int ERROR_CODE_5=0x7f070027;
+        public static final int ERROR_CODE_6=0x7f070028;
+        public static final int ERROR_CODE_7=0x7f070029;
+        public static final int ERROR_CODE_8=0x7f07002a;
+        public static final int ERROR_CODE_9=0x7f07002b;
+        public static final int FATAL_ERROR=0x7f070022;
+        public static final int FOLLOWING=0x7f07001c;
+        public static final int IS_IT_OK=0x7f070020;
+        public static final int I_AM_NOT_SURE=0x7f07001e;
+        public static final int I_DIDNT_CATCH_THAT=0x7f07001d;
+        public static final int PLEASE_REPEAT=0x7f07001f;
+        public static final int WHAT_TAG_FOLLOW=0x7f07001a;
+        public static final int action_settings=0x7f070001;
+        public static final int app_name=0x7f070000;
+        public static final int butt_main_driver=0x7f070011;
+        public static final int butt_main_generate_str=0x7f07000b;
+        public static final int butt_main_logcat_str=0x7f070012;
+        public static final int butt_main_recognize_str=0x7f070005;
+        public static final int main_action_about=0x7f070002;
+        public static final int main_action_licences=0x7f070003;
+        public static final int main_action_logcat=0x7f070013;
+        public static final int main_action_othercode=0x7f070016;
+        public static final int main_mode_select_desc_str=0x7f070004;
+        public static final int num0=0x7f07002f;
+        public static final int num1=0x7f070030;
+        public static final int num10=0x7f070039;
+        public static final int num100=0x7f07004b;
+        public static final int num11=0x7f07003a;
+        public static final int num12=0x7f07003b;
+        public static final int num13=0x7f07003c;
+        public static final int num14=0x7f07003d;
+        public static final int num15=0x7f07003e;
+        public static final int num16=0x7f07003f;
+        public static final int num17=0x7f070040;
+        public static final int num18=0x7f070041;
+        public static final int num19=0x7f070042;
+        public static final int num1th=0x7f070054;
+        public static final int num2=0x7f070031;
+        public static final int num20=0x7f070043;
+        public static final int num200=0x7f07004c;
+        public static final int num20th=0x7f07005a;
+        public static final int num2th=0x7f070055;
+        public static final int num3=0x7f070032;
+        public static final int num30=0x7f070044;
+        public static final int num300=0x7f07004d;
+        public static final int num30th=0x7f07005b;
+        public static final int num3th=0x7f070056;
+        public static final int num4=0x7f070033;
+        public static final int num40=0x7f070045;
+        public static final int num400=0x7f07004e;
+        public static final int num40th=0x7f07005c;
+        public static final int num5=0x7f070034;
+        public static final int num50=0x7f070046;
+        public static final int num500=0x7f07004f;
+        public static final int num50th=0x7f07005d;
+        public static final int num5th=0x7f070057;
+        public static final int num6=0x7f070035;
+        public static final int num60=0x7f070047;
+        public static final int num600=0x7f070050;
+        public static final int num60th=0x7f07005e;
+        public static final int num7=0x7f070036;
+        public static final int num70=0x7f070048;
+        public static final int num700=0x7f070051;
+        public static final int num70th=0x7f07005f;
+        public static final int num8=0x7f070037;
+        public static final int num80=0x7f070049;
+        public static final int num800=0x7f070052;
+        public static final int num80th=0x7f070060;
+        public static final int num8th=0x7f070058;
+        public static final int num9=0x7f070038;
+        public static final int num90=0x7f07004a;
+        public static final int num900=0x7f070053;
+        public static final int num90th=0x7f070061;
+        public static final int num9th=0x7f070059;
+        public static final int numminus=0x7f07002e;
+        public static final int recognize_action_debug=0x7f070015;
+        public static final int recognize_action_graph=0x7f070018;
+        public static final int recognize_action_resolution=0x7f070008;
+        public static final int recognize_action_set_tag=0x7f070014;
+        public static final int recognize_action_set_threads=0x7f070017;
+        public static final int recognize_button_screenshot=0x7f070007;
+        public static final int recognizer_force_speaking=0x7f070019;
+        public static final int resolution_dialog_ok=0x7f070009;
+        public static final int response_no=0x7f07002d;
+        public static final int response_yes=0x7f07002c;
+        public static final int title_activity_about=0x7f07000c;
+        public static final int title_activity_driver=0x7f07000e;
+        public static final int title_activity_licences=0x7f07000d;
+        public static final int title_activity_logcat=0x7f07000f;
+        public static final int title_activity_marker_generator=0x7f07000a;
+        public static final int title_activity_othercode=0x7f070010;
+        public static final int title_activity_recognize=0x7f070006;
     }
     public static final class style {
         /** 
@@ -264,14 +264,14 @@ containing a value of this type.
     
  API 14 theme customizations can go here. 
          */
-        public static final int AppBaseTheme=0x7f090000;
+        public static final int AppBaseTheme=0x7f080000;
         /**  Application theme. 
  All customizations that are NOT specific to a particular API-level can go here. 
          */
-        public static final int AppTheme=0x7f090001;
-        public static final int ButtonBar=0x7f090003;
-        public static final int ButtonBarButton=0x7f090004;
-        public static final int FullscreenTheme=0x7f090002;
+        public static final int AppTheme=0x7f080001;
+        public static final int ButtonBar=0x7f080003;
+        public static final int ButtonBarButton=0x7f080004;
+        public static final int FullscreenTheme=0x7f080002;
     }
     public static final class xml {
         public static final int device_filter=0x7f040000;

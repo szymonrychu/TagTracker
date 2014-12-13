@@ -40,7 +40,7 @@ public class MarkerArrayAdapter extends ArrayAdapter<Integer> {
 			convertView.setTag(holder);
 		}
 		holder = (ViewHolder) convertView.getTag();
-		String markerName = "Marker numer " + (position +1);
+		String markerName = "Marker number " + (position +1);
 		holder.text.setText(markerName);
 		holder.image.setImageResource(data.get(position));
 		return convertView;

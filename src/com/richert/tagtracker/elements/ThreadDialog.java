@@ -23,12 +23,12 @@ public abstract class ThreadDialog extends DialogFragment{
 			threadList.add(c);
 			StringBuilder builder = new StringBuilder();
 			builder.append(c);
-			builder.append(" w¹tki");
+			builder.append(" threads");
 			texts.add(builder.toString());
 		}
 
 		threadList.add(-1);
-		texts.add("Bez limitu");
+		texts.add("No limits");
 		
 	}
 	/**
@@ -40,7 +40,7 @@ public abstract class ThreadDialog extends DialogFragment{
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		builder.setTitle(R.string.recognize_action_set_tag);
+		builder.setTitle(R.string.recognize_action_set_threads);
 		builder.setItems(texts.toArray(new String[texts.size()]), new OnClickListener(){
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
