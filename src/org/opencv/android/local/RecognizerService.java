@@ -1,10 +1,11 @@
 package org.opencv.android.local;
 
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.local.LoadBalancer.InvalidStateException;
-import org.opencv.android.local.LoadBalancer.Task;
-import org.opencv.android.local.LoadBalancer;
 import org.opencv.core.Mat;
+
+import com.richert.tagtracker.processing.LoadBalancer;
+import com.richert.tagtracker.processing.LoadBalancer.InvalidStateException;
+import com.richert.tagtracker.processing.LoadBalancer.Task;
 
 import android.app.Service;
 import android.content.Intent;
@@ -24,7 +25,7 @@ public class RecognizerService extends Service {
 	private long ptr = 0;
 	private native long newRecognizerNtv();
 	private native void delRecognizerNtv(long ptr);
-	private native Object[] findTagsNtv(long ptr, long yuvAddr);
+	private native Object[] findTagsNtv(long ptr, long yuvAddr, int blockSize, double adaptThresh);
 	private native void notifySizeChangedNtv(long ptr, int width, int height, int rotation);
 	private MatProcessingBinder binder;
 	private LoadBalancer loadBalancer;
@@ -36,6 +37,8 @@ public class RecognizerService extends Service {
 		public MatProcessingBinder() {}
 		private Mat frame;
 		private ProcessingCallback post;
+		int blockSize = 75;
+		double adaptThresh = 7.0;
 		public void setProcessingCallback(ProcessingCallback c){
 			this.post = c;
 		}
@@ -44,7 +47,7 @@ public class RecognizerService extends Service {
 			LoadBalancer.Task t = new Task() {
 				@Override
 				public void work() {
-					Tag[] tagz = (Tag[]) findTagsNtv(ptr, frame.clone().getNativeObjAddr());
+					Tag[] tagz = (Tag[]) findTagsNtv(ptr, frame.clone().getNativeObjAddr(), blockSize, adaptThresh);
 					if(post != null){
 						post.post(tagz);
 					}
@@ -75,15 +78,14 @@ public class RecognizerService extends Service {
 		}
 	}
 	
-	@Override
-	public void onStart(Intent intent, int startId) {
-		super.onStart(intent, startId);
-	}
+	
+
+	
+	
 	@Override
 	public void onCreate() {
 		loadBalancer = new LoadBalancer();
 		ptr = newRecognizerNtv();
-		
 		super.onCreate();
 	}
 	@Override
@@ -91,15 +93,13 @@ public class RecognizerService extends Service {
 		delRecognizerNtv(ptr);
 		super.onDestroy();
 	}
-	
-	
-
-	
-	
-	
 	@Override
 	public IBinder onBind(Intent intent) {
 		binder = new MatProcessingBinder();
 		return binder;
+	}
+	@Override
+	public boolean onUnbind(Intent intent) {
+		return super.onUnbind(intent);
 	}
 }

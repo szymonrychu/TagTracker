@@ -1,4 +1,4 @@
-package org.opencv.android.local;
+package com.richert.tagtracker.processing;
 
 import java.util.ArrayList;
 
@@ -138,13 +138,13 @@ public class LoadBalancer implements Runnable{
 	}
 	@Override
 	public void run() {
+		Worker w = null;
 		while(work){
 			while(currentPoolSize < maxPoolSize){
 				Worker task = new Worker();
 				pool.add(task);
 				currentPoolSize++;
 			}
-			Worker w = null;
 			while(currentPoolSize > maxPoolSize){
 				w = getNextWorker();
 				pool.remove(w);
@@ -162,5 +162,6 @@ public class LoadBalancer implements Runnable{
 				}
 			} catch (InterruptedException e) {}
 		}
+		pool.clear();
 	}
 }

@@ -12,7 +12,6 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.local.LoadBalancer.InvalidStateException;
 import org.opencv.android.local.Misc;
 import org.opencv.android.local.RecognizerService;
 import org.opencv.android.local.RecognizerService.ProcessingCallback;
@@ -28,7 +27,6 @@ import com.richert.tagtracker.elements.CpuInfo;
 import com.richert.tagtracker.elements.DriverHelper;
 import com.richert.tagtracker.elements.FullScreenActivity;
 import com.richert.tagtracker.elements.LanguageHelper;
-import com.richert.tagtracker.elements.OfflineDataHelper;
 import com.richert.tagtracker.elements.PerformanceTester;
 import com.richert.tagtracker.elements.PerformanceTester.TestResultCallback;
 import com.richert.tagtracker.elements.Pointer;
@@ -39,7 +37,9 @@ import com.richert.tagtracker.elements.CameraDrawerPreview.CameraSetupCallback;
 import com.richert.tagtracker.elements.TextToSpeechToText;
 import com.richert.tagtracker.elements.TextToSpeechToText.SpeechToTextListener;
 import com.richert.tagtracker.elements.ThreadDialog;
-import com.richert.tagtracker.services.UsbConnectionService;
+import com.richert.tagtracker.processing.OfflineDataHelper;
+import com.richert.tagtracker.processing.LoadBalancer.InvalidStateException;
+import com.richert.tagtracker.usb.UsbConnectionService;
 
 import android.app.ProgressDialog;
 import android.content.ComponentName;
@@ -118,10 +118,10 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		
 		@Override
 		public void post(Tag[] tagz) {
-			tags = tagz;
+			if(tagz!= null){
+				tags = tagz;
+			}
 			preview.requestRefresh();
-			// TODO Auto-generated method stub
-			
 		}
 	}
 
@@ -203,14 +203,13 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 				}
 				try {
 					matBinder.startProcessing();
-				} catch (InterruptedException e) {}
+				} catch (InterruptedException e) {
+					Log.e(TAG, "couldn't start recognizer binder!");
+				}
 			}
 			@Override
 			public void onServiceDisconnected(ComponentName name) {
 				Log.v(TAG, "disconnected from service");
-				try {
-					matBinder.stopProcessing();
-				} catch (InterruptedException e) {}
 				matBinder = null;
 			}
 			
@@ -256,6 +255,12 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			tester.stopTests();
 		}
 		unbindService(usbConnection);
+		try {
+			matBinder.stopProcessing();
+			Log.v(TAG, "recognizer binder stopped!");
+		} catch (InterruptedException e) {
+			Log.e(TAG, "couldn't stop recognizer binder!");
+		}
 		
 		unbindService(recognizerConnection);
 		stopService(startRecognizerService);

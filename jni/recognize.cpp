@@ -13,6 +13,8 @@ private:
 	Point2f norm2DPts[4];
 	int tagSize, tagKernel;
 	bool preview;
+    Mat mBin;
+    Mat mGray;
 	struct PointStr{
 		int x;
 		int y;
@@ -137,8 +139,8 @@ public:
 	Size imageSize;
 	int rotation;
 	Recognizer(){
-		this->blockSize = 45;
-		this->adaptThresh = 5.0;
+		this->blockSize = 75;
+		this->adaptThresh = 7.0;
 		this->maxTagSize = 0.99;
 		this->minTagSize = 0.01;
 		this->normSize = 25;
@@ -161,11 +163,11 @@ public:
 	void addTagToSet(Mat tag){
 		this->tags.push_back(tag);
 	}
-	vector<Geometry::Tag> recognizeTags(Mat&mYuv){
-	    Mat mGray(mYuv.rows,mYuv.cols,CV_8UC3);
+	vector<Geometry::Tag> recognizeTags(Mat&mYuv, int blockSize, double adaptThresh){
+		Mat mGray(mYuv.rows,mYuv.cols,CV_8UC1);
 	    cvtColor(mYuv,mGray,COLOR_YUV2GRAY_NV21);
 	    Mat mBin;
-	    adaptiveThreshold(mGray,mBin,255,CV_ADAPTIVE_THRESH_GAUSSIAN_C,CV_THRESH_BINARY_INV,blockSize,adaptThresh);
+	    adaptiveThreshold(mGray,mBin,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY_INV,blockSize,adaptThresh);
 	    //dilate(mBin,mBin,Mat());
 		vector<vector<Point> > contours;
 	    findContours(mBin,contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
@@ -259,13 +261,13 @@ JNIEXPORT void JNICALL Java_org_opencv_android_local_RecognizerService_delRecogn
 	}
 }
 JNIEXPORT jobjectArray JNICALL Java_org_opencv_android_local_RecognizerService_findTagsNtv(JNIEnv* env, jobject\
-		,jlong recognizerAddr,jlong addrYuv){
+		,jlong recognizerAddr,jlong addrYuv, jint blockSize, jdouble adaptThresh){
 	Mat& mYuv = *(Mat*)addrYuv;
 	if(recognizerAddr != 0){
 		Recognizer*recognizer = (Recognizer*)recognizerAddr;
 
 		try{
-			vector<Geometry::Tag> tags = recognizer->recognizeTags(mYuv);
+			vector<Geometry::Tag> tags = recognizer->recognizeTags(mYuv, blockSize, adaptThresh);
 			if(tags.size()>0){
 				jobjectArray result = env->NewObjectArray(tags.size(),jTagCls,tags.at(0).toJava(env,recognizer->rotation,recognizer->imageSize));
 				for(int c=1;c<tags.size();c++){

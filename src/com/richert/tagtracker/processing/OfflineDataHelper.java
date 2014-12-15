@@ -1,4 +1,4 @@
-package com.richert.tagtracker.elements;
+package com.richert.tagtracker.processing;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,6 +12,7 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
+import com.richert.tagtracker.elements.PerformanceTester;
 import com.richert.tagtracker.elements.PerformanceTester.Holder;
 
 import android.content.Context;

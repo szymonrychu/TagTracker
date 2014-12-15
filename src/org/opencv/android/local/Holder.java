@@ -1,6 +1,7 @@
 package org.opencv.android.local;
 
 import org.opencv.core.Mat;
+
 /**
  * Holder class used by native methods to communicate with java.
  * @author szymon

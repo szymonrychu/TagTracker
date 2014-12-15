@@ -1,9 +1,9 @@
-package com.richert.tagtracker.services;
+package com.richert.tagtracker.usb;
 
 import com.richert.tagtracker.activities.DriverActivity;
 import com.richert.tagtracker.activities.RecognizeActivity;
 import com.richert.tagtracker.elements.DriverHelper;
-import com.richert.tagtracker.elements.OfflineDataHelper;
+import com.richert.tagtracker.processing.OfflineDataHelper;
 
 import android.app.Activity;
 import android.app.Application;

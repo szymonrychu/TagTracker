@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
 
-import com.richert.tagtracker.services.UsbConnectionService;
+import com.richert.tagtracker.usb.UsbConnectionService;
 
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
