@@ -48,7 +48,7 @@ public:
 
 
     	if(addFrame){
-    		logD("processImage(Mat grayFrame,JNIEnv*env,int rotation)","adding frame to set!");
+    		Log::d("processImage(Mat grayFrame,JNIEnv*env,int rotation)","adding frame to set!");
     		addFrame = false;
     		imageSize = grayFrame.size();
             cornerSubPix(grayFrame, imageCorners, Size(5,5),Size(-1,-1),
@@ -57,7 +57,7 @@ public:
             objectPoints.push_back(objectCorners);
     	}
     	if(boardFound){
-    		logD("processImage(Mat grayFrame,JNIEnv*env,int rotation)","board found!");
+    		Log::d("processImage(Mat grayFrame,JNIEnv*env,int rotation)","board found!");
 
     	}
     	return imageCorners;
@@ -66,16 +66,16 @@ public:
     	addFrame = true;
     	/*if(boardFound){
 			logD("addFrameToSet()","adding to set");
-            /*cornerSubPix(grayFrame, imageCorners, Size(5,5),Size(-1,-1),
-                TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS,30,0.1));*/
-            /*imagePoints.push_back(imageCorners);
+            cornerSubPix(grayFrame, imageCorners, Size(5,5),Size(-1,-1),
+                TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS,30,0.1));
+            imagePoints.push_back(imageCorners);
             objectPoints.push_back(objectCorners);
     	}*/
     }
     void processFrames(){
-		logD("processFrames()","processing frames");
+    	Log::d("processFrames()","processing frames");
     	if(imagePoints.size()>0){
-    		logD("processFrames()","imagePoints.size() > 0");
+    		Log::d("processFrames()","imagePoints.size() > 0");
     		xxx = calibrateCamera(objectPoints, //the 3D points
     		                imagePoints,
     		                imageSize,
@@ -86,7 +86,7 @@ public:
 
 			calibrated  = checkRange(cameraMatrix) && checkRange(distCoeffs) ;
 			if(calibrated){
-				logD("processFrames()","calibrated = true");
+				Log::d("processFrames()","calibrated = true");
 			}
 			objectPoints.clear();
 			imagePoints.clear();
@@ -95,14 +95,14 @@ public:
     jobject getCameraMatrix(JNIEnv* env){
 		if(calibrated){
 			jobject jMatPic = env->NewObject(jMatCls,jMatConsID);
-			logD("getCameraMatrix(JNIEnv* env)","new Mat Java object");
+			Log::d("getCameraMatrix(JNIEnv* env)","new Mat Java object");
 			Mat&cMat=*(Mat*)env->CallLongMethod(jMatPic,jMatGetNatAddr);
-			logD("getCameraMatrix(JNIEnv* env)","cloning data to java object");
+			Log::d("getCameraMatrix(JNIEnv* env)","cloning data to java object");
 			cMat = cameraMatrix.clone();
-			logD("getCameraMatrix(JNIEnv* env)","returning mat");
+			Log::d("getCameraMatrix(JNIEnv* env)","returning mat");
 			return jMatPic;
 		}else{
-			logD("getCameraMatrix(JNIEnv* env)","returning NULL");
+			Log::d("getCameraMatrix(JNIEnv* env)","returning NULL");
 			return NULL;
 		}
     }
@@ -158,7 +158,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_opencv_android_local_Calibrator_detectCh
 				}
 				env->SetObjectArrayElement(jPointResult,count,point.toJava(env,rotation,Size(mGray.cols, mGray.rows)));
 			}
-			logD("detectChessBoardNtv","returning array : %d",size);
+			Log::d("detectChessBoardNtv","returning array : %d",size);
 			return jPointResult;
 		}else{
 			return NULL;

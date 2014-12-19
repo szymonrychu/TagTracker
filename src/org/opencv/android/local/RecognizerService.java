@@ -25,8 +25,9 @@ public class RecognizerService extends Service {
 	private long ptr = 0;
 	private native long newRecognizerNtv();
 	private native void delRecognizerNtv(long ptr);
-	private native Object[] findTagsNtv(long ptr, long yuvAddr, int blockSize, double adaptThresh);
+	private native Object[] findTagsNtv(long ptr, long yuvAddr);
 	private native void notifySizeChangedNtv(long ptr, int width, int height, int rotation);
+	private native void insightNtv(long ptr, long mYuv);
 	private MatProcessingBinder binder;
 	private LoadBalancer loadBalancer;
 
@@ -47,7 +48,7 @@ public class RecognizerService extends Service {
 			LoadBalancer.Task t = new Task() {
 				@Override
 				public void work() {
-					Tag[] tagz = (Tag[]) findTagsNtv(ptr, frame.clone().getNativeObjAddr(), blockSize, adaptThresh);
+					Tag[] tagz = (Tag[]) findTagsNtv(ptr, frame.getNativeObjAddr());
 					if(post != null){
 						post.post(tagz);
 					}
@@ -75,6 +76,10 @@ public class RecognizerService extends Service {
 		}
 		public void stopProcessing() throws InterruptedException{
 			loadBalancer.stopWorking();
+		}
+		public Mat insight(Mat mYuv){
+			insightNtv(ptr, mYuv.getNativeObjAddr());
+			return mYuv;
 		}
 	}
 	

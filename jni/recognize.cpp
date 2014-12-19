@@ -4,21 +4,20 @@ using namespace cv;
 
 class Recognizer{
 private:
+	bool sizeSet;
 	bool processImages;
 	vector<Mat> tags;
-	int outline, normSize;
-	double maxTagSize, minTagSize;
-    int blockSize;
-    double adaptThresh;
+	int outline;
+	Size imageSize;
+	int rotation;
 	Point2f norm2DPts[4];
 	int tagSize, tagKernel;
-	bool preview;
-    Mat mBin;
-    Mat mGray;
 	struct PointStr{
 		int x;
 		int y;
 	};
+	vector<Geometry::Tag> tagz;
+	int fieldNum;
 	int getTagId(Mat normTag){
 		int result=0;
 		switch(this->rotation){
@@ -135,48 +134,110 @@ private:
 		}
 		return result+1;
 	}
+	double minOutline, maxOutline;
 public:
-	Size imageSize;
-	int rotation;
+	bool cornerSubP;
+	bool dilatE;
+	bool kalmanFilter;
+	bool preview;
+	double maxTagSize, minTagSize;
+    int blockSize;
+    double adaptThresh;
+    int normSize;
 	Recognizer(){
-		this->blockSize = 75;
-		this->adaptThresh = 7.0;
-		this->maxTagSize = 0.99;
-		this->minTagSize = 0.01;
-		this->normSize = 25;
-		this->tagSize = 5;
+		this->processImages = false;
+		this->sizeSet = false;
+		this->imageSize = Size(0,0);
+		this->outline = 0;
 		this->preview = true;
 		this->rotation = 0;
 
 
 
-		this->processImages = false;
+
+
+		this->kalmanFilter = false;
+		this->cornerSubP = true;
+		this->dilatE = true;
+		this->preview = false;
+		this->maxTagSize = 0.8;
+		this->minTagSize = 0.2;
+		this->blockSize = 45;
+		this->adaptThresh = 7.0;
+		this->normSize = 25;
+
 		this->norm2DPts[0] = Point2f(0,0);
 		this->norm2DPts[1] = Point2f(normSize-1,0);
 		this->norm2DPts[2] = Point2f(normSize-1,normSize-1);
 		this->norm2DPts[3] = Point2f(0,normSize-1);
-		this->tagKernel = normSize / tagSize;
 	}
 	~Recognizer(){
 
 	}
-	void addTagToSet(Mat tag){
-		this->tags.push_back(tag);
+	int getRotation(){
+		return this->rotation;
 	}
-	vector<Geometry::Tag> recognizeTags(Mat&mYuv, int blockSize, double adaptThresh){
-		Mat mGray(mYuv.rows,mYuv.cols,CV_8UC1);
-	    cvtColor(mYuv,mGray,COLOR_YUV2GRAY_NV21);
-	    Mat mBin;
-	    adaptiveThreshold(mGray,mBin,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY_INV,blockSize,adaptThresh);
-	    //dilate(mBin,mBin,Mat());
+	Size getImageSize(){
+		return this->imageSize;
+	}
+	void insight(Mat&mYuv){
+		Mat mGray(mYuv.rows,mYuv.cols,CV_8UC3);
+		cvtColor(mYuv,mGray,COLOR_YUV2GRAY_NV21);
+		if(!sizeSet){
+			return ;
+		}
+		Mat mBin;
+		adaptiveThreshold(mGray,mBin,255,CV_ADAPTIVE_THRESH_GAUSSIAN_C,CV_THRESH_BINARY_INV,blockSize,adaptThresh);
+		if(dilatE){
+			dilate(mBin,mBin,Mat());
+		}
 		vector<vector<Point> > contours;
-	    findContours(mBin,contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	    findContours(mBin.clone(),contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 	    unsigned int size = 0;
 	    vector<vector<Point> >::iterator itVVP;
-	    vector<Geometry::Tag> result;
 	    for(itVVP = contours.begin(); itVVP!=contours.end(); itVVP++){
 	    	double len = arcLength(*itVVP,true);
-	    	if(len > minTagSize*outline && len < maxTagSize*outline){
+	    	if(len > minOutline && len < maxOutline){
+	    		vector<Point> polygon;
+	    		approxPolyDP(*itVVP,polygon,len*0.02,true);
+	    		if(polygon.size()==4 && isContourConvex(Mat (polygon))){
+	    			int c = 0;
+	    			for(int c=0;c<4;c++){
+		    			line(mGray,polygon[c],polygon[(c+1)%4],Scalar(255,122,122),3);
+	    			}
+	    		}
+	    	}
+	    }
+	    mYuv = mGray;
+	}
+	vector<Geometry::Tag> recognizeTags(Mat mYuv){
+	    vector<Geometry::Tag> result;
+		if(!sizeSet){
+			return result;
+		}
+		/*vector<Geometry::Tag> tags;
+		vector<Geometry::Tag>::iterator tagIt;
+		for(tagIt = tagz.begin();kalmanFilter && tagIt!=tagz.end();tagIt++){
+			Geometry::Tag tmp = *tagIt;
+			tmp.draw = false;
+			tags.push_back(tmp);
+		}*/
+
+		Mat mGray(mYuv.rows,mYuv.cols,CV_8UC3);
+		cvtColor(mYuv,mGray,COLOR_YUV2GRAY_NV21);
+		Mat mBin;
+		adaptiveThreshold(mGray.clone(),mBin,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY_INV,blockSize,adaptThresh);
+
+		if(dilatE){
+			dilate(mBin,mBin,Mat());
+		}
+		vector<vector<Point> > contours;
+	    findContours(mBin.clone(),contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+	    unsigned int size = 0;
+	    vector<vector<Point> >::iterator itVVP;
+	    for(itVVP = contours.begin(); itVVP!=contours.end(); itVVP++){
+	    	double len = arcLength(*itVVP,true);
+	    	if(len > minOutline && len < maxOutline){
 	    		vector<Point> polygon;
 	    		approxPolyDP(*itVVP,polygon,len*0.02,true);
 	    		if(polygon.size()==4 && isContourConvex(Mat (polygon))){
@@ -185,7 +246,7 @@ public:
 	    			minX = maxX = polygon.at(0).x;
 	    		    vector<cv::Point>::iterator itVP;
     				vector<Point2f> refinedVertices;
-    				int counter;
+    				int counter=0;
     				double d;
     				double dmin=(4*outline);
     				int v1=-1;
@@ -210,46 +271,73 @@ public:
 						}
 	    			}
 	    			Rect roi(minX, minY, maxX-minX+1, maxY-minY+1);
-    				cornerSubPix(mGray, refinedVertices, Size(3,3), Size(-1,-1), TermCriteria(1, 3, 1));
-	    			Point2f roi2DPts[4];
+	    			if(this->cornerSubP){
+	    				cornerSubPix(mGray, refinedVertices, Size(3,3), Size(-1,-1), TermCriteria(1, 3, 1));
+	    			}
+    	    		Point2f roi2DPts[4];
 					for(counter=0; counter<4;counter++){
 						roi2DPts[counter] = Point2f(refinedVertices.at((4+v1-counter)%4).x - minX, refinedVertices.at((4+v1-counter)%4).y - minY);
 					}
-    				Mat homo(3,3,CV_32F);
+    	    		Mat homo(3,3,CV_32F);
     				homo = getPerspectiveTransform(roi2DPts,norm2DPts);
-    				Mat subImg = mGray(cv::Range(roi.y, roi.y+roi.height), cv::Range(roi.x, roi.x+roi.width));
+    	    		Mat subImg = mGray(cv::Range(roi.y, roi.y+roi.height), cv::Range(roi.x, roi.x+roi.width));
     				Mat normROI = Mat(normSize,normSize,CV_8UC1);
     				warpPerspective( subImg, normROI, homo, Size(normSize,normSize));
-    				int id = getTagId(normROI);
-
-    				vector<int>::iterator it;
+    	    		int id = getTagId(normROI);
     				if(id!=-1){
-        				Geometry::Tag tag;
-
-						tag.setPoints(refinedVertices,rotation,Size(mGray.cols,mGray.rows), len);
-						tag.preview = normROI;
+						Geometry::Tag tag;
 						tag.id = id;
+						tag.preview = normROI;
+						tag.setPoints(refinedVertices,rotation,Size(mGray.cols,mGray.rows), len);
 						result.push_back(tag);
+    					/*Log::d("tag number", "tag id=%d",id-1);
+						if(kalmanFilter){
+							tags[id-1].preview = normROI;
+							tags[id-1].setPointsKalman(refinedVertices,rotation,Size(mGray.cols,mGray.rows), len);
+						}else{
+							//TODO
+						}*/
     				}
 	    		}
 	    	}
 	    }
+		/*or(tagIt = tags.begin();kalmanFilter && tagIt!=tags.end();tagIt++){
+			Geometry::Tag tag = *tagIt;
+			if(tag.draw){
+				result.push_back(tag);
+			}
+		}*/
 		return result;
 	}
-	void notifyImageSizeChanged(Size newSize,int rotation){
+	void notifyImageSizeChanged(Size newSize,int rotation, int tagSize){
+		this->tagSize = tagSize;
+		this->tagKernel = normSize / tagSize;
 		double scaleW = imageSize.width / newSize.width;
 		double scaleH = imageSize.height / newSize.height;
 		this->processImages = false;
 		this->imageSize = newSize;
 		this->rotation = rotation;
-		this->outline = (imageSize.width + imageSize.height) / 2;
+		this->outline = (newSize.width + newSize.height) * 2;
+		minOutline = minTagSize*outline;
+		maxOutline = maxTagSize*outline;
+		Log::d("notifyImageSizeChanged","outline=%d",outline);
+		Log::d("notifyImageSizeChanged","minOutline=%f",minOutline);
+		Log::d("notifyImageSizeChanged","maxOutline=%f",maxOutline);
+		this->fieldNum = (tagSize-2)*(tagSize-4)+2*(tagSize-4);
+		tagz.clear();
+		for(int c=0;c<fieldNum;c++){
+			Geometry::Tag t;
+			t.id = c+1;
+			tagz.push_back(t);
+		}
+		this->sizeSet = true;
 	}
 
 
 };
 extern "C"{
 JNIEXPORT jlong JNICALL Java_org_opencv_android_local_RecognizerService_newRecognizerNtv(JNIEnv* env, jobject\
-		, jint width, jint height){
+		){
     Recognizer*recognizer = new Recognizer();
 	return (jlong)recognizer;
 }
@@ -261,27 +349,22 @@ JNIEXPORT void JNICALL Java_org_opencv_android_local_RecognizerService_delRecogn
 	}
 }
 JNIEXPORT jobjectArray JNICALL Java_org_opencv_android_local_RecognizerService_findTagsNtv(JNIEnv* env, jobject\
-		,jlong recognizerAddr,jlong addrYuv, jint blockSize, jdouble adaptThresh){
+		,jlong recognizerAddr,jlong addrYuv){
 	Mat& mYuv = *(Mat*)addrYuv;
 	if(recognizerAddr != 0){
 		Recognizer*recognizer = (Recognizer*)recognizerAddr;
-
-		try{
-			vector<Geometry::Tag> tags = recognizer->recognizeTags(mYuv, blockSize, adaptThresh);
-			if(tags.size()>0){
-				jobjectArray result = env->NewObjectArray(tags.size(),jTagCls,tags.at(0).toJava(env,recognizer->rotation,recognizer->imageSize));
-				for(int c=1;c<tags.size();c++){
-					env->SetObjectArrayElement(result,c,tags.at(c).toJava(env,recognizer->rotation,recognizer->imageSize));
-				}
-				return result;
-			}else{
-				return NULL;
+		vector<Geometry::Tag> tags = recognizer->recognizeTags(mYuv);
+		int rotation = recognizer->getRotation();
+		Size imgSize = recognizer->getImageSize();
+		if(tags.size()>0){
+			jobjectArray result = env->NewObjectArray(tags.size(),jTagCls,tags.at(0).toJava(env,rotation,imgSize));
+			for(int c=1;c<tags.size();c++){
+				env->SetObjectArrayElement(result,c,tags.at(c).toJava(env,rotation,imgSize));
 			}
-		}catch (Exception e) {
+			return result;
+		}else{
 			return NULL;
 		}
-
-
 	}else{
 		return NULL;
 	}
@@ -291,8 +374,16 @@ JNIEXPORT void JNICALL Java_org_opencv_android_local_RecognizerService_notifySiz
 	if(recognizerAddr != 0){
 		Recognizer*recognizer = (Recognizer*)recognizerAddr;
 		Size size(width,height);
-		logD("Java_com_richert_tagtracker_recognizer_Recognizer_notifySizeChangedNtv","w:%d:h:%d:r:%d",width,height,rotation);
-		recognizer->notifyImageSizeChanged(size, rotation);
+		Log::d("Java_com_richert_tagtracker_recognizer_Recognizer_notifySizeChangedNtv","w:%d:h:%d:r:%d",width,height,rotation);
+		recognizer->notifyImageSizeChanged(size, rotation, 5);
+	}
+}
+JNIEXPORT void JNICALL Java_org_opencv_android_local_RecognizerService_insightNtv(JNIEnv* env, jobject\
+		,jlong recognizerAddr,jlong addrYuv){
+	if(recognizerAddr != 0){
+		Mat& mYuv = *(Mat*)addrYuv;
+		Recognizer*recognizer = (Recognizer*)recognizerAddr;
+		recognizer->insight(mYuv);
 	}
 }
 

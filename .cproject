@@ -68,6 +68,7 @@
 									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9\include-fixed&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\OpenCV-2.4.10-android-sdk\sdk\native\jni\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\fastcv&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.875023780" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>

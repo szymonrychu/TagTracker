@@ -3,6 +3,7 @@ package com.richert.tagtracker.processing;
 import java.util.ArrayList;
 
 import android.os.Binder;
+import android.util.Log;
 
 
 public class LoadBalancer implements Runnable{
@@ -19,27 +20,36 @@ public class LoadBalancer implements Runnable{
 		void work();
 	}
 	private class Worker implements Runnable{
+		final static int WORKER_STATE_EMPTY = 0;
+		final static int WORKER_STATE_FULL = 1;
+		final static int WORKER_STATE_WORKING = 2;
+		final static int WORKER_STATE_LOCKED = 2;
 		long addToQueueTimestamp = 0;
 		long getFromQueueTimestamp = 0;
 		long processingTimestamp = 0;
-		public Boolean reuse = true;
+		public int state;
 		public Task task;
+		public Worker() {
+			state = WORKER_STATE_EMPTY;
+		}
 		public void setTask(Task task){
-			reuse = false;
+			state = WORKER_STATE_FULL;
 			addToQueueTimestamp = System.currentTimeMillis();
 			this.task = task;
 		}
 		@Override
 		public void run() {
+			state = WORKER_STATE_WORKING;
 			if(task != null){
 				getFromQueueTimestamp = System.currentTimeMillis();
 				task.work();
+				task = null;
 				processingTimestamp = System.currentTimeMillis();
 			}
-			reuse = true;
 			currentThreadsActive--;
+			state = WORKER_STATE_EMPTY;
 			synchronized(flag) {
-				flag.notifyAll();
+				flag.notify();
 			}
 		}
 	}
@@ -58,7 +68,7 @@ public class LoadBalancer implements Runnable{
 		pool = new ArrayList<LoadBalancer.Worker>();
 		// TODO Auto-generated constructor stub
 	}
-	private Worker getNextWorker(){
+	private Worker getNextWorker(int state){
 		Worker worker = null;
 		if(currentPoolSize < 1){
 			return worker;
@@ -67,13 +77,16 @@ public class LoadBalancer implements Runnable{
 			for(int c=0;c<maxPoolSize;c++){
 				int pos = (c+currentPoolIndex)%maxPoolSize;
 				Worker w = pool.get(pos);
-				if(w.reuse){
-					worker = w;
+				if(w.state == state){
+					w.state = Worker.WORKER_STATE_LOCKED;
 					currentPoolIndex = pos;
+					worker = w;
 					break;
 				}
 			}
-			if(worker == null){
+			if(!work){
+				return null;
+			}else if(worker == null){
 				try {
 					synchronized(flag){
 						flag.wait();
@@ -84,40 +97,37 @@ public class LoadBalancer implements Runnable{
 		return worker;
 	}
 	public void setNextTaskIfEmpty(Task task) throws NullPointerException, IndexOutOfBoundsException{
-		synchronized(flag) {
-			flag.notifyAll();
-		}
+		Boolean changed = false;
 		for(int c=0;c<maxPoolSize;c++){
 			int pos = (c+currentPoolIndex)%maxPoolSize;
 			Worker w = pool.get(pos);
-			if(w.reuse){
-				w.setTask(task);
+			if(w.state == Worker.WORKER_STATE_EMPTY){
 				currentPoolIndex = pos;
-				return;
+				w.setTask(task);
+				changed = true;
+				break;
+			}
+		}
+		if(changed){
+			synchronized(flag) {
+				flag.notify();
 			}
 		}
 	}
-	public void setNextEmptyTask(Task task) throws NullPointerException, IndexOutOfBoundsException{
-		synchronized(flag) {
-			flag.notifyAll();
-		}
-		Worker w = getNextWorker();
-		if(w != null){
-			w.setTask(task);
-		}else{
-			throw new NullPointerException();
-		}
-	}
 	public void startWorking() throws InterruptedException{
-		work = true;
 		if(balancer != null){
 			stopWorking();
 		}
+		work = true;
 		balancer = new Thread(this);
+		balancer.setPriority(Thread.MAX_PRIORITY);
 		balancer.start();
 	}
 	public void stopWorking() throws InterruptedException{
 		work = false;
+		try{
+			flag.notifyAll();
+		}catch(Exception e){}
 		balancer.join();
 		balancer = null;
 	}
@@ -144,19 +154,22 @@ public class LoadBalancer implements Runnable{
 				Worker task = new Worker();
 				pool.add(task);
 				currentPoolSize++;
+				try{
+					flag.notify();
+				}catch(Exception e){}
 			}
 			while(currentPoolSize > maxPoolSize){
-				w = getNextWorker();
+				w = getNextWorker(Worker.WORKER_STATE_EMPTY);
 				pool.remove(w);
 				currentPoolSize--;
 			}
 			while(currentThreadsActive < maxThreadsActive){
 				currentThreadsActive++;
-				w = getNextWorker();
+				w = getNextWorker(Worker.WORKER_STATE_FULL);
 				Thread t = new Thread(w);
+				t.setPriority(Thread.MAX_PRIORITY-2);
 				t.start();
-			}
-			try {
+			}if(work)try {
 				synchronized(flag){
 					flag.wait();
 				}

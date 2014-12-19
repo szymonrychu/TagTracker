@@ -1,11 +1,15 @@
 #ifndef HELPER_H
 #define HELPER_H
 
-#include <jni.h>
-#include <vector>
-#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <sys/time.h>
+#include <math.h>
+#include <vector>
+
+#include <jni.h>
 #include <android/log.h>
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/imgproc/imgproc_c.h>
@@ -55,32 +59,35 @@ extern "C" {
 	}
 }
 
-void rotate(cv::Mat& src, cv::Mat& dst, double angle){
+class Log{
+public:
+	static void d(const string tag, const string frmt, ...){
+		va_list ap;
+		va_start(ap, frmt);
+		if(debug)__android_log_vprint(ANDROID_LOG_DEBUG, tag.c_str(), frmt.c_str(), ap);
+	}
+	static void v(const string tag, const string frmt, ...){
+		va_list ap;
+		va_start(ap, frmt);
+		if(debug)__android_log_vprint(ANDROID_LOG_VERBOSE, tag.c_str(), frmt.c_str(), ap);
+	}
+	static void e(const string tag, const string frmt, ...){
+		va_list ap;
+		va_start(ap, frmt);
+		if(debug)__android_log_vprint(ANDROID_LOG_ERROR, tag.c_str(), frmt.c_str(), ap);
+	}
+	static void w(const string tag, const string frmt, ...){
+		va_list ap;
+		va_start(ap, frmt);
+		if(debug)__android_log_vprint(ANDROID_LOG_WARN, tag.c_str(), frmt.c_str(), ap);
+	}
+};
+static void rotate(cv::Mat& src, cv::Mat& dst, double angle){
 	Point2f src_center(src.cols/2.0F, src.rows/2.0F);
 	Mat rot_mat = getRotationMatrix2D(src_center, angle, 1.0);
 	warpAffine(src, dst, rot_mat, src.size());
 }
-void logD(const string tag, const string frmt, ...){
-	va_list ap;
-	va_start(ap, frmt);
-	if(debug)__android_log_vprint(ANDROID_LOG_DEBUG, tag.c_str(), frmt.c_str(), ap);
-}
-void logV(const string tag, const string frmt, ...){
-	va_list ap;
-	va_start(ap, frmt);
-	if(debug)__android_log_vprint(ANDROID_LOG_VERBOSE, tag.c_str(), frmt.c_str(), ap);
-}
-void logE(const string tag, const string frmt, ...){
-	va_list ap;
-	va_start(ap, frmt);
-	if(debug)__android_log_vprint(ANDROID_LOG_ERROR, tag.c_str(), frmt.c_str(), ap);
-}
-void logW(const string tag, const string frmt, ...){
-	va_list ap;
-	va_start(ap, frmt);
-	if(debug)__android_log_vprint(ANDROID_LOG_WARN, tag.c_str(), frmt.c_str(), ap);
-}
-void rotateMat(Mat &mat, int rotation){
+static void rotateMat(Mat &mat, int rotation){
 	if(rotation%2!=1){
 		flip(mat.t(),mat, 1);
 	}

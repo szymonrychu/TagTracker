@@ -7,6 +7,7 @@ LOCAL_PATH=$(TOP_PATH)/jni
 LOCAL_MODULE    := recognize
 LOCAL_SRC_FILES := recognize.cpp
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
+LOCAL_C_INCLUDES += $(TOP_PATH)\..\fastcv
 LOCAL_LDLIBS +=  -llog -ldl
 include $(BUILD_SHARED_LIBRARY)
 

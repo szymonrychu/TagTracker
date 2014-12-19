@@ -107,6 +107,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private PerformanceTester tester;
 	private int errorCounter = 0;
 	private boolean speak = true;
+	private boolean insight = true;
 	private boolean forceSpeaking = false;
 	private LanguageHelper langHelper;
 	//binders 
@@ -195,7 +196,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 				matBinder = (RecognizerService.MatProcessingBinder) service;
 				matBinder.setProcessingCallback(new PostProcessing());
 				try {
-					matBinder.setMaxPoolSize(10);
+					matBinder.setMaxPoolSize(8);
 					matBinder.setMaxThreadsNum(5);
 				} catch (InvalidStateException e) {
 					Toast.makeText(getBaseContext(), "Set threads and pool num failed!", Toast.LENGTH_SHORT).show();
@@ -380,7 +381,8 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 		}
 		if(tags != null){
 			for(Tag t : tags){
-				newTagMap[t.id -1] = true;
+				if(t.id>0)
+					newTagMap[t.id -1] = true;
 			}
 		}
 		Boolean diff = false;
@@ -451,7 +453,6 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 	private float meanY = -1;
 	@Override
 	public void drawOnCamera(Canvas canvas, double scaleX, double scaleY) {
-		
 		if(tags!=null){
 			previewX = previewY = 0;
 			float mY = 0;
@@ -492,6 +493,7 @@ public class RecognizeActivity extends FullScreenActivity implements CameraSetup
 			}
 		}
 		drawDebugInfo(canvas);
+		
 		askIfChanged();
 	}
 	@SuppressWarnings("deprecation")
