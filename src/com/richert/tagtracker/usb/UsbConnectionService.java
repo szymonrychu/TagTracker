@@ -25,7 +25,7 @@ public class UsbConnectionService extends Service implements Runnable {
 	private String action, preferedActivity;
 	private Boolean latch;
 	public static final String INTENT_EXTRA = "intent type";
-	UsbDataCommunicationBinder binder;
+	private UsbDataCommunicationBinder binder;
 	
 
 	private DriverHelper driverHelper;
@@ -39,8 +39,6 @@ public class UsbConnectionService extends Service implements Runnable {
 	@Override
 	public void onStart(Intent intent, int startId) {
 		//action = intent.getAction();
-		new Handler().post(this);
-		Log.v(TAG, "onStrart()");
 		super.onStart(intent, startId);
 	}
 	
@@ -53,11 +51,31 @@ public class UsbConnectionService extends Service implements Runnable {
 	@Override
 	public void onCreate() {
 		context = getBaseContext();
+		latch = true;
+		OfflineDataHelper dbHelper = new OfflineDataHelper(context);
+		preferedActivity = dbHelper.loadPreferedActivity();
+		if(preferedActivity.isEmpty()){
+			stopSelf();
+		}
+		//Intent.ACTION_MAIN
+		//UsbManager.ACTION_USB_DEVICE_ATTACHED
+		try{
+			if(preferedActivity.contentEquals(RecognizeActivity.class.getSimpleName())){
+				Intent recognize = new Intent(context,RecognizeActivity.class);
+				recognize.putExtra(INTENT_EXTRA, action);
+				application.startActivity(recognize);
+			}else if(preferedActivity.contentEquals(DriverActivity.class.getSimpleName())){
+				Intent drive = new Intent(context,DriverActivity.class);
+				drive.putExtra(INTENT_EXTRA, action);
+				startActivity(drive);
+			}
+		}catch ( Exception e){}
+		
+		new Handler().post(this);
 		application = getApplication();
 		binder = new UsbDataCommunicationBinder();
 		driverHelper = new DriverHelper(this, (UsbManager) getSystemService(Context.USB_SERVICE));
 		driverHelper.startMonitor(this);
-		
 		// TODO Auto-generated method stub
 		super.onCreate();
 	}

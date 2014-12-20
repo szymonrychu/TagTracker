@@ -23,8 +23,8 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 
 import com.richert.tagtracker.R;
-import com.richert.tagtracker.elements.LanguageHelper;
 import com.richert.tagtracker.processing.OfflineDataHelper;
+import com.richert.tagtracker.ttstt.LanguageHelper;
 
 public class MainActivity extends Activity implements Runnable{
 	static {

@@ -318,7 +318,6 @@ public class CameraDrawerPreview extends ViewGroup {
 				int heightL) {
 			width = widthL;
 			height = heightL;
-			Log.v(TAG,"updated: w:"+width+":h:"+height);
 
 			Camera.Parameters params = camera.getParameters();
 	        reloadCameraSetup(params);

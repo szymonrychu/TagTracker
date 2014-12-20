@@ -17,6 +17,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.richert.tagtracker.activities.RecognizeActivity;
+import com.richert.tagtracker.monitor.CpuInfo;
 import com.richert.tagtracker.processing.OfflineDataHelper;
 
 public class PerformanceTester implements Runnable{

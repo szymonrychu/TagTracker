@@ -11,6 +11,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
@@ -40,16 +41,29 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
     private int maxVals = 6;
     private Boolean work = true;
     private Thread monitor;
+    Intent receiveIntent;
+    
+    
+    
+    private static final String ACTION_USB_PERMISSION = "com.richert.tagtracker.elements.USB_PERMISSION";
+    private PendingIntent permissionIntent;
+    private Boolean connected;
+    private int[] flag;
+    Intent intent;
+	boolean mPermissionRequestPending = false;
     public DriverHelper(Context context, UsbManager usbManager){
     	this.context = context;
     	this.usbManager = usbManager;
-    	this.usbManager = usbManager;
-        
+    	connected = false;
 		StringBuilder sb = new StringBuilder();
 		for(int c=0;c<maxVals;c++){
 			sb.append(String.format("%03d,", 0));
 		}
 		buffer = sb.toString();
+		IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+		filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
+		context.registerReceiver(this, filter);
+		setupDevice();
     }
     public void unregisterReceiver(){
     	try{
@@ -61,6 +75,26 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
 			monitor.join();
     	}catch(Exception e ){}
     	
+    }
+    private void setupDevice(){
+    	permissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
+    	if(connected) return;
+    	HashMap<String, UsbDevice> usbDeviceList = usbManager.getDeviceList();
+        Iterator<UsbDevice> deviceIterator = usbDeviceList.values().iterator();
+        if (deviceIterator.hasNext()) {
+            usbDevice = deviceIterator.next();
+        }
+        if (usbDevice != null && !usbManager.hasPermission(usbDevice))  {
+        	synchronized (this) {
+				if (!mPermissionRequestPending) {
+					usbManager.requestPermission(usbDevice, permissionIntent);
+					mPermissionRequestPending = true;
+				}
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {}
+			} 
+        }
     }
     public void steer(final float procX, final float procY, final float procZ){
 		int steerings[] = new int[6];
@@ -100,15 +134,24 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
     public Boolean transreceiving(){
     	return usbConnection != null;
     }
+    
     @Override
 	public void onReceive(Context context, Intent intent) {
-        String action = intent.getAction();
-        if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
-        	work = true;
-        }else if(UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)){
-        	work = true;
-        }
-        
+    	String action = intent.getAction();
+    	usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+    	if(ACTION_USB_PERMISSION.equals(action)){
+    		synchronized (this) {
+				if(intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)){
+					Log.d(TAG, "permission granted");
+					if(usbDevice != null){
+						Log.d(TAG, "opening device");
+						openDevice();
+					}
+				}else{
+					Log.d(TAG, "permission denied");
+				}
+			}
+    	}
     }
     private String checkIfNull(Object obj){
     	if(obj == null){
@@ -158,10 +201,6 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
     	filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
     	this.context.registerReceiver(this, filter);
     	
-		
-    	work = true;
-    	worker = new Thread(this);
-    	worker.start();
     }
     private byte[] getLineEncoding(int baudRate) {
         final byte[] lineEncodingRequest = { (byte) 0x80, 0x25, 0x00, 0x00, 0x00, 0x00, 0x08 };
@@ -234,40 +273,22 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
 	            }
             }
         }
+        if(worker == null){
+        	worker = new Thread(this);
+            worker.start();
+        }
+        
     }
-    Intent intent;
 	@Override
 	public void run() {
 		while(work){
-			if(usbDevice != null && usbConnection != null && inEndpoint != null && outEndpoint != null){
-				usbConnection.bulkTransfer(outEndpoint, buffer.getBytes(), buffer.getBytes().length, timeoutMs);
-	        }else{
-	        	usbDevice = null;
-	        	usbConnection = null;
-	        	inEndpoint = null;
-	        	outEndpoint = null;
-	        	HashMap<String, UsbDevice> usbDeviceList = usbManager.getDeviceList();
-		        Iterator<UsbDevice> deviceIterator = usbDeviceList.values().iterator();
-		        if (deviceIterator.hasNext()) {
-		            usbDevice = deviceIterator.next();
-		        }
-		        if (usbDevice != null)  {
-		        	intent = new Intent(context, UsbConnectionService.class);
-		    		intent.putExtra(usbManager.EXTRA_PERMISSION_GRANTED, false);  // for extra data if needed..
-
-		    		Random generator = new Random();
-
-		    		PendingIntent i=PendingIntent.getActivity(context, generator.nextInt(), intent,PendingIntent.FLAG_UPDATE_CURRENT);
-		    		usbManager.requestPermission(usbDevice, i);
-		    		if(intent.getBooleanExtra(usbManager.EXTRA_PERMISSION_GRANTED, false)){
-						openDevice();
-		    		}
-		        }
-	        }
-        	try {
+			usbConnection.bulkTransfer(outEndpoint, buffer.getBytes(), buffer.getBytes().length, timeoutMs);
+			try {
 	        	Thread.sleep(timeoutMs);
-			} catch (InterruptedException e) {
-			}
+			} catch (InterruptedException e) { }
+			Log.v(TAG, "starting");
+			
+        	
 			
 		}
 	}
@@ -305,6 +326,9 @@ public class DriverHelper extends BroadcastReceiver implements Runnable{
 	public void setBufferSize(int bufferSize) {
 		this.bufferSize = bufferSize;
 	}
-	
-	
+	private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+		public void onReceive(Context context, Intent intent) { 
+			
+		} 
+	}; 
 }

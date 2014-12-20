@@ -1,4 +1,4 @@
-package com.richert.tagtracker.elements;
+package com.richert.tagtracker.monitor;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -18,14 +18,14 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
 
-public class CpuInfo implements Runnable{
+public class CpuInfo{
 	private static final String TAG = CpuInfo.class.getSimpleName();
 	private int cpuNum = 0;
 	private Queue<float[]> queue;
-	protected float[][] data;
+	public float[][] data;
 	private long[][] rawData;
 	private long[][] rawPreviousData;
-	protected int[] frequency;
+	public int[] frequency;
 	private long total[];
 	private long previousTotal[];
 	private static final String[] legend = {"user", "nice", "system", "idle", "iowait", "irq", "sirq"};
@@ -163,18 +163,10 @@ public class CpuInfo implements Runnable{
 	    }
 	}
 	public void stopReading(){
-		try {
-			closeReader();
-			worker.join();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		closeReader();
 	}
 	public void startReading(){
 		openReader();
-		worker = new Thread(this);
-		worker.start();
 		
 	}
 	public void setState(Boolean read){
@@ -190,7 +182,12 @@ public class CpuInfo implements Runnable{
 		long data[] = new long[8];
 		long total = 0;
 		for(int c=0; c<6; c++){
-			data[c] = Long.parseLong(info[c]);
+			try{
+				data[c] = Long.parseLong(info[c]);
+			}catch(NumberFormatException e ){
+				data[c] = 0;
+			}
+			
 			total += data[c];
 		}
 		data[7] = total;
@@ -220,55 +217,50 @@ public class CpuInfo implements Runnable{
 		}
 		return result;
 	}
-	@Override
-	public void run() {
-		while(opened){
-			String line = "";
-			try{
-	        	if(opened){
-		        	reader.seek(0);
-					line = reader.readLine();
-					if(line.startsWith("cpu")){
-						long raw[] = parseLine(line);
-						previousTotal[cpuNum] = total[cpuNum];
-						total[cpuNum] = raw[7];
-						for(int c=0; opened && c<7; c++){
-							rawPreviousData[cpuNum][c] = rawData[cpuNum][c];
-							rawData[cpuNum][c] = raw[c];
-							data[cpuNum][c] = 100*((float)(rawPreviousData[cpuNum][c] - rawData[cpuNum][c]))/((float)(previousTotal[cpuNum] - total[cpuNum]));
-							synchronized(queue){
-								if(opened){
-									if(queue.size() >= window){
-										queue.poll();
-									}
-									queue.add(data[cpuNum].clone());
+	public void parseCPUInfo(){
+		String line = "";
+		try{
+        	if(opened){
+	        	reader.seek(0);
+				line = reader.readLine();
+				if(line.startsWith("cpu")){
+					long raw[] = parseLine(line);
+					previousTotal[cpuNum] = total[cpuNum];
+					total[cpuNum] = raw[7];
+					for(int c=0; opened && c<7; c++){
+						rawPreviousData[cpuNum][c] = rawData[cpuNum][c];
+						rawData[cpuNum][c] = raw[c];
+						data[cpuNum][c] = 100*((float)(rawPreviousData[cpuNum][c] - rawData[cpuNum][c]))/((float)(previousTotal[cpuNum] - total[cpuNum]));
+						synchronized(queue){
+							if(opened){
+								if(queue.size() >= window){
+									queue.poll();
 								}
+								queue.add(data[cpuNum].clone());
 							}
 						}
+					}
+					line = reader.readLine();
+				}
+        	}
+			for(int cpu=0; opened && cpu<cpuNum; cpu++){
+				if(line.startsWith("cpu"+cpu)){
+					long raw[] = parseLine(line);
+					previousTotal[cpu] = total[cpu];
+					total[cpu] = raw[7];
+					for(int c=0; opened && c<7; c++){
+						rawPreviousData[cpu][c] = rawData[cpu][c];
+						rawData[cpu][c] = raw[c];
+						data[cpu][c] = 100*((float)(rawPreviousData[cpu][c] - rawData[cpu][c]))/((float)(previousTotal[cpu] - total[cpu]));
+					}
+					if(opened){
 						line = reader.readLine();
 					}
-	        	}
-				for(int cpu=0; opened && cpu<cpuNum; cpu++){
-					if(line.startsWith("cpu"+cpu)){
-						long raw[] = parseLine(line);
-						previousTotal[cpu] = total[cpu];
-						total[cpu] = raw[7];
-						for(int c=0; opened && c<7; c++){
-							rawPreviousData[cpu][c] = rawData[cpu][c];
-							rawData[cpu][c] = raw[c];
-							data[cpu][c] = 100*((float)(rawPreviousData[cpu][c] - rawData[cpu][c]))/((float)(previousTotal[cpu] - total[cpu]));
-						}
-						if(opened){
-							line = reader.readLine();
-						}
-					}
 				}
-				frequency = getCurrentCPUFreqs();
-				Thread.sleep(250);
-				
-			}catch(IOException e){} catch (InterruptedException e) {} catch(NullPointerException e) {}
+			}
+			frequency = getCurrentCPUFreqs();
 			
-		}
+		}catch(IOException e){} catch(NullPointerException e) {}
 	}
 		
 }

@@ -2,6 +2,8 @@ package com.richert.tagtracker.processing;
 
 import java.util.ArrayList;
 
+import com.richert.tagtracker.monitor.MonitoringService.MonitoringBinder;
+
 import android.os.Binder;
 import android.util.Log;
 
@@ -19,16 +21,26 @@ public class LoadBalancer implements Runnable{
 	public interface Task{
 		void work();
 	}
+	public void setMonitoringCallback(MonitoringBinder monitor){
+		this.monitor = monitor;
+		this.monitorEnabled = true;
+	}
+	public void unsetMonitoringCallback(){
+		this.monitor = null;
+		this.monitorEnabled = false;
+	}
 	private class Worker implements Runnable{
+		final static int WORKER_STATE_ANY = 666;
 		final static int WORKER_STATE_EMPTY = 0;
 		final static int WORKER_STATE_FULL = 1;
 		final static int WORKER_STATE_WORKING = 2;
 		final static int WORKER_STATE_LOCKED = 2;
-		long addToQueueTimestamp = 0;
-		long getFromQueueTimestamp = 0;
-		long processingTimestamp = 0;
 		public int state;
 		public Task task;
+		private long addToQueueTimestamp = 0;
+		protected long retrieveFromQueueTime = 0;
+		protected long processTime = 0;
+		protected Thread t;
 		public Worker() {
 			state = WORKER_STATE_EMPTY;
 		}
@@ -41,10 +53,10 @@ public class LoadBalancer implements Runnable{
 		public void run() {
 			state = WORKER_STATE_WORKING;
 			if(task != null){
-				getFromQueueTimestamp = System.currentTimeMillis();
+				retrieveFromQueueTime = System.currentTimeMillis() - addToQueueTimestamp;
 				task.work();
 				task = null;
-				processingTimestamp = System.currentTimeMillis();
+				processTime = System.currentTimeMillis() - addToQueueTimestamp;
 			}
 			currentThreadsActive--;
 			state = WORKER_STATE_EMPTY;
@@ -63,6 +75,14 @@ public class LoadBalancer implements Runnable{
 	private ArrayList<Worker> pool;
 	private int flag[] = {};
 	private Thread balancer;
+	private MonitoringBinder monitor;
+
+	
+
+	private long retrieveFromQueueTimeStatus = 0;
+	private long processTimeStatus = 0;
+	
+	private Boolean monitorEnabled = false;
 	public LoadBalancer() {
 		balancer = null;
 		pool = new ArrayList<LoadBalancer.Worker>();
@@ -76,12 +96,24 @@ public class LoadBalancer implements Runnable{
 		do{
 			for(int c=0;c<maxPoolSize;c++){
 				int pos = (c+currentPoolIndex)%maxPoolSize;
-				Worker w = pool.get(pos);
-				if(w.state == state){
-					w.state = Worker.WORKER_STATE_LOCKED;
-					currentPoolIndex = pos;
-					worker = w;
-					break;
+				try{
+					Worker w = pool.get(pos);
+					if(state == Worker.WORKER_STATE_ANY){
+						currentPoolIndex = pos;
+						return w;
+					}else if(w.state == state){
+						w.state = Worker.WORKER_STATE_LOCKED;
+						if(state == Worker.WORKER_STATE_FULL && monitorEnabled){
+							monitor.setWaitingProcessingTime(processTimeStatus);
+							monitor.setWaitingTime(retrieveFromQueueTimeStatus);
+						}
+						processTimeStatus = w.processTime;
+						currentPoolIndex = pos;
+						worker = w;
+						break;
+					}
+				}catch(IndexOutOfBoundsException e){
+					Log.w("getNextWorker()", "Unable to get the worker in pos="+pos);
 				}
 			}
 			if(!work){
@@ -125,9 +157,6 @@ public class LoadBalancer implements Runnable{
 	}
 	public void stopWorking() throws InterruptedException{
 		work = false;
-		try{
-			flag.notifyAll();
-		}catch(Exception e){}
 		balancer.join();
 		balancer = null;
 	}
@@ -150,7 +179,7 @@ public class LoadBalancer implements Runnable{
 	public void run() {
 		Worker w = null;
 		while(work){
-			while(currentPoolSize < maxPoolSize){
+			while(work && currentPoolSize < maxPoolSize){
 				Worker task = new Worker();
 				pool.add(task);
 				currentPoolSize++;
@@ -158,22 +187,29 @@ public class LoadBalancer implements Runnable{
 					flag.notify();
 				}catch(Exception e){}
 			}
-			while(currentPoolSize > maxPoolSize){
+			while(work && currentPoolSize > maxPoolSize){
 				w = getNextWorker(Worker.WORKER_STATE_EMPTY);
 				pool.remove(w);
 				currentPoolSize--;
 			}
-			while(currentThreadsActive < maxThreadsActive){
+			while(work && currentThreadsActive < maxThreadsActive){
 				currentThreadsActive++;
 				w = getNextWorker(Worker.WORKER_STATE_FULL);
-				Thread t = new Thread(w);
-				t.setPriority(Thread.MAX_PRIORITY-2);
-				t.start();
+				if(w!=null){
+					w.t = new Thread(w);
+					w.t.setPriority(Thread.MAX_PRIORITY-2);
+					w.t.start();
+				}
 			}if(work)try {
 				synchronized(flag){
 					flag.wait();
 				}
 			} catch (InterruptedException e) {}
+		}
+		for(Worker work : pool){
+			try {
+				work.t.join();
+			} catch (Exception e) {}
 		}
 		pool.clear();
 	}

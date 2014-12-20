@@ -1,4 +1,4 @@
-package com.richert.tagtracker.elements;
+package com.richert.tagtracker.ttstt;
 
 import java.text.NumberFormat;
 import java.util.Locale;

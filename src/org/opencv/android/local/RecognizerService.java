@@ -3,6 +3,7 @@ package org.opencv.android.local;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 
+import com.richert.tagtracker.monitor.MonitoringService.MonitoringBinder;
 import com.richert.tagtracker.processing.LoadBalancer;
 import com.richert.tagtracker.processing.LoadBalancer.InvalidStateException;
 import com.richert.tagtracker.processing.LoadBalancer.Task;
@@ -40,6 +41,12 @@ public class RecognizerService extends Service {
 		private ProcessingCallback post;
 		int blockSize = 75;
 		double adaptThresh = 7.0;
+		public void setMonitor(MonitoringBinder monitor){
+			loadBalancer.setMonitoringCallback(monitor);
+		}
+		public void unsetMonitor(){
+			loadBalancer.unsetMonitoringCallback();
+		}
 		public void setProcessingCallback(ProcessingCallback c){
 			this.post = c;
 		}
@@ -86,25 +93,21 @@ public class RecognizerService extends Service {
 	
 
 	
-	
-	@Override
-	public void onCreate() {
-		loadBalancer = new LoadBalancer();
-		ptr = newRecognizerNtv();
-		super.onCreate();
-	}
-	@Override
-	public void onDestroy() {
-		delRecognizerNtv(ptr);
-		super.onDestroy();
-	}
 	@Override
 	public IBinder onBind(Intent intent) {
+		loadBalancer = new LoadBalancer();
+		ptr = newRecognizerNtv();
 		binder = new MatProcessingBinder();
 		return binder;
 	}
 	@Override
 	public boolean onUnbind(Intent intent) {
+		try {
+			binder.stopProcessing();
+		} catch (InterruptedException e) {
+			Log.e(TAG, "problem stopping service!");
+		}
+		delRecognizerNtv(ptr);
 		return super.onUnbind(intent);
 	}
 }

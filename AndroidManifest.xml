@@ -48,6 +48,9 @@
         <service android:name="org.opencv.android.local.RecognizerService"
             android:enabled = "true">
         </service>
+        <service android:name="com.richert.tagtracker.monitor.MonitoringService"
+            android:enabled = "true">
+        </service>
         <activity
             android:name="com.richert.tagtracker.activities.MainActivity"
             android:label="@string/app_name" >

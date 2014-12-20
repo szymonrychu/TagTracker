@@ -161,7 +161,7 @@ public:
 		this->dilatE = true;
 		this->preview = false;
 		this->maxTagSize = 0.8;
-		this->minTagSize = 0.2;
+		this->minTagSize = 0.01;
 		this->blockSize = 45;
 		this->adaptThresh = 7.0;
 		this->normSize = 25;
@@ -215,6 +215,7 @@ public:
 		if(!sizeSet){
 			return result;
 		}
+		int c = 0;
 		/*vector<Geometry::Tag> tags;
 		vector<Geometry::Tag>::iterator tagIt;
 		for(tagIt = tagz.begin();kalmanFilter && tagIt!=tagz.end();tagIt++){
@@ -320,9 +321,6 @@ public:
 		this->outline = (newSize.width + newSize.height) * 2;
 		minOutline = minTagSize*outline;
 		maxOutline = maxTagSize*outline;
-		Log::d("notifyImageSizeChanged","outline=%d",outline);
-		Log::d("notifyImageSizeChanged","minOutline=%f",minOutline);
-		Log::d("notifyImageSizeChanged","maxOutline=%f",maxOutline);
 		this->fieldNum = (tagSize-2)*(tagSize-4)+2*(tagSize-4);
 		tagz.clear();
 		for(int c=0;c<fieldNum;c++){
@@ -374,7 +372,6 @@ JNIEXPORT void JNICALL Java_org_opencv_android_local_RecognizerService_notifySiz
 	if(recognizerAddr != 0){
 		Recognizer*recognizer = (Recognizer*)recognizerAddr;
 		Size size(width,height);
-		Log::d("Java_com_richert_tagtracker_recognizer_Recognizer_notifySizeChangedNtv","w:%d:h:%d:r:%d",width,height,rotation);
 		recognizer->notifyImageSizeChanged(size, rotation, 5);
 	}
 }
