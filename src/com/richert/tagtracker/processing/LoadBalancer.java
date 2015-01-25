@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import com.richert.tagtracker.monitor.MonitoringService.MonitoringBinder;
 
-import android.os.Binder;
 import android.util.Log;
 
 
@@ -13,7 +12,7 @@ public class LoadBalancer implements Runnable{
 		private static final long serialVersionUID = 1L;
 		public static final int TYPE_SET_SIZE_TOO_SMALL = 1;
 		public static final int TYPE_SET_SIZE_TOO_BIG = 2;
-		int type;
+		public int type;
 		public InvalidStateException(int type) {
 			this.type = type;
 		}
@@ -130,20 +129,24 @@ public class LoadBalancer implements Runnable{
 	}
 	public void setNextTaskIfEmpty(Task task) throws NullPointerException, IndexOutOfBoundsException{
 		Boolean changed = false;
-		for(int c=0;c<maxPoolSize;c++){
-			int pos = (c+currentPoolIndex)%maxPoolSize;
-			Worker w = pool.get(pos);
-			if(w.state == Worker.WORKER_STATE_EMPTY){
-				currentPoolIndex = pos;
-				w.setTask(task);
-				changed = true;
-				break;
+		if(pool.size() > 0){
+			for(int c=0;c<maxPoolSize;c++){
+				int pos = (c+currentPoolIndex)%maxPoolSize;
+				try{
+					Worker w = pool.get(pos);
+					if(w.state == Worker.WORKER_STATE_EMPTY){
+						currentPoolIndex = pos;
+						w.setTask(task);
+						changed = true;
+						break;
+					}
+				}catch(IndexOutOfBoundsException e){
+					throw new IndexOutOfBoundsException("Unable to get the worker in pos="+pos);
+				}
 			}
 		}
-		if(changed){
-			synchronized(flag) {
-				flag.notify();
-			}
+		synchronized(flag) {
+			flag.notify();
 		}
 	}
 	public void startWorking() throws InterruptedException{
@@ -192,13 +195,14 @@ public class LoadBalancer implements Runnable{
 				pool.remove(w);
 				currentPoolSize--;
 			}
-			while(work && currentThreadsActive < maxThreadsActive){
+			while(work && maxPoolSize > 0 && currentThreadsActive < maxThreadsActive){
 				currentThreadsActive++;
 				w = getNextWorker(Worker.WORKER_STATE_FULL);
 				if(w!=null){
 					w.t = new Thread(w);
 					w.t.setPriority(Thread.MAX_PRIORITY-2);
 					w.t.start();
+					//Log.v("run()", "worker started!");
 				}
 			}if(work)try {
 				synchronized(flag){

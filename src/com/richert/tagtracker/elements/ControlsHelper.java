@@ -1,5 +1,8 @@
 package com.richert.tagtracker.elements;
 
+import com.richert.tagtracker.multitouch.OnMultitouch;
+import com.richert.tagtracker.multitouch.Pointer;
+
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;

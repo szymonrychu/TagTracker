@@ -45,4 +45,13 @@
         android:layout_below="@+id/butt_main_driver"
         android:text="@string/butt_main_generate_str" />
 
+    <Button
+        android:id="@+id/butt_main_camera2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/butt_main_marker_gen"
+        android:layout_alignRight="@+id/butt_main_marker_gen"
+        android:layout_below="@+id/butt_main_marker_gen"
+        android:text="Button" />
+
 </RelativeLayout>

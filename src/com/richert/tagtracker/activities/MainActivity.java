@@ -36,6 +36,7 @@ public class MainActivity extends Activity implements Runnable{
 	private Button recognizeButton = null;
 	private Button generateButton = null;
 	private Button driverButton = null;
+	private Button camera2Button = null;
 	private Context context;
 	private String action, preferedActivity;
 	private OfflineDataHelper dbHelper;
@@ -56,6 +57,7 @@ public class MainActivity extends Activity implements Runnable{
 		recognizeButton = (Button) findViewById(R.id.butt_main_recognize);
 		driverButton = (Button) findViewById(R.id.butt_main_driver);
 		generateButton = (Button) findViewById(R.id.butt_main_marker_gen);
+		camera2Button = (Button) findViewById(R.id.butt_main_camera2);
 		latch = false;
 		tts = new TextToSpeech(this, new OnInitListener(){
 
@@ -97,6 +99,14 @@ public class MainActivity extends Activity implements Runnable{
 			@Override
 			public void onClick(View v) {
 				Intent generate = new Intent(context,MarkerGeneratorActivity.class);
+				generate.putExtra(INTENT_EXTRA, action);
+				startActivity(generate);
+			}
+		});
+		camera2Button.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent generate = new Intent(context,Camera2Activity.class);
 				generate.putExtra(INTENT_EXTRA, action);
 				startActivity(generate);
 			}

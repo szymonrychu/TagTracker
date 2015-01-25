@@ -3,6 +3,7 @@
 
 #include "helper.h"
 
+static const int ROTATION_NO_CHANGE=4;
 static const int ROTATION_LANDSCAPE=1;
 static const int ROTATION_PORTRAIT=0;
 static const int ROTATION_PORTR_UPSIDE_DOWN=2;
@@ -42,7 +43,47 @@ public:
 				env->SetFloatField(result,xID,((float)y/matSize.height));
 				env->SetFloatField(result,yID,((float)(matSize.width - x)/matSize.width));
 			break;
+			case(ROTATION_NO_CHANGE):
+				env->SetFloatField(result,xID,x);
+				env->SetFloatField(result,yID,y);
+			break;
 			}
+			return result;
+		}
+		jobject toJava(JNIEnv* env, int rotation, Size imgSize, Size prevSize){
+			jfieldID xID = env->GetFieldID(jPointCls,"x","F");
+			jfieldID yID = env->GetFieldID(jPointCls,"y","F");
+			jobject result = env->NewObject(jPointCls,jPointConsID);
+			float X, Y;
+			switch(rotation){
+			case(ROTATION_LANDSCAPE):
+				X = ((float)x/imgSize.width) * prevSize.width;
+				Y = ((float)y/imgSize.height) * prevSize.height;
+			break;
+			case(ROTATION_PORTRAIT):
+				X = ((float)(imgSize.height - y)/(imgSize.height)) * prevSize.width;
+				Y = ((float)x/(imgSize.width)) * prevSize.height;
+			break;
+			case(ROTATION_LANDS_UPSIDE_DOWN):
+				X = ((float)(imgSize.width - x)/imgSize.width) * prevSize.width;
+				Y = ((float)(imgSize.height - y)/imgSize.height) * prevSize.height;
+			break;
+			case(ROTATION_PORTR_UPSIDE_DOWN):
+				X = ((float)y/imgSize.height) * prevSize.width;
+				Y = ((float)(imgSize.width - x)/imgSize.width) * prevSize.height;
+			break;
+			case(ROTATION_NO_CHANGE):
+				X = ((float)x);
+				Y = ((float)y);
+			break;
+			default:
+				X = Y = 0.0f;
+			break;
+			}
+			//Log::d("Point to java", "iW=%d iH=%d pW=%d pH=%d",imgSize.width,imgSize.height,prevSize.width,prevSize.height);
+			//Log::d("Point to java", " x=%d  y=%d  X=%f  Y=%f",x,y,X,Y);
+			env->SetFloatField(result,xID,X);
+			env->SetFloatField(result,yID,Y);
 			return result;
 		}
 	};
@@ -225,7 +266,7 @@ public:
 				this->draw = false;
 			}
 		}
-		jobject toJava(JNIEnv*env, int rotation, Size matSize){
+		jobject toJava(JNIEnv*env, int rotation, Size imgSize, Size prevSize){
 			jfieldID idID = env->GetFieldID(jTagCls,"id","I");
 			jfieldID lenID = env->GetFieldID(jTagCls,"len","D");
 			jfieldID homoID = env->GetFieldID(jTagCls,"homo","Lorg/opencv/core/Mat;");
@@ -239,14 +280,38 @@ public:
 			env->SetDoubleField(result,lenID,this->l);
 			env->SetObjectField(result,homoID,mat2JMat(env,this->homo));
 			env->SetObjectField(result,previewID,mat2JMat(env,this->preview));
-			jobjectArray pointsJArray = env->NewObjectArray(this->points.size(),jPointCls,points.at(0).toJava(env,rotation,matSize));
+			jobjectArray pointsJArray = env->NewObjectArray(this->points.size(),jPointCls,points.at(0).toJava(env,rotation,imgSize, prevSize));
 			for(int c=1;c<this->points.size();c++){
-				env->SetObjectArrayElement(pointsJArray,c,points.at(c).toJava(env,rotation,matSize));
+				env->SetObjectArrayElement(pointsJArray,c,points.at(c).toJava(env,rotation,imgSize, prevSize));
 			}
 			jobject pointsJ = reinterpret_cast<jobject>(pointsJArray);
 			env->SetObjectField(result,pointsID,pointsJ);
 			env->DeleteLocalRef(pointsJ);
-			env->SetObjectField(result,centerID,center.toJava(env, rotation, matSize));
+			env->SetObjectField(result,centerID,center.toJava(env, rotation, imgSize, prevSize));
+			return result;
+		}
+		jobject toJava(JNIEnv*env, int rotation, Size imgSize){
+			jfieldID idID = env->GetFieldID(jTagCls,"id","I");
+			jfieldID lenID = env->GetFieldID(jTagCls,"len","D");
+			jfieldID homoID = env->GetFieldID(jTagCls,"homo","Lorg/opencv/core/Mat;");
+			jfieldID previewID = env->GetFieldID(jTagCls,"preview","Lorg/opencv/core/Mat;");
+			jfieldID pointsID = env->GetFieldID(jTagCls,"points","[Lorg/opencv/android/local/Point;");
+			jfieldID centerID = env->GetFieldID(jTagCls,"center","Lorg/opencv/android/local/Point;");
+
+			jobject result = env->NewObject(jTagCls,jTagConsID);
+
+			env->SetIntField(result,idID,this->id);
+			env->SetDoubleField(result,lenID,this->l);
+			env->SetObjectField(result,homoID,mat2JMat(env,this->homo));
+			env->SetObjectField(result,previewID,mat2JMat(env,this->preview));
+			jobjectArray pointsJArray = env->NewObjectArray(this->points.size(),jPointCls,points.at(0).toJava(env,rotation,imgSize));
+			for(int c=1;c<this->points.size();c++){
+				env->SetObjectArrayElement(pointsJArray,c,points.at(c).toJava(env,rotation,imgSize));
+			}
+			jobject pointsJ = reinterpret_cast<jobject>(pointsJArray);
+			env->SetObjectField(result,pointsID,pointsJ);
+			env->DeleteLocalRef(pointsJ);
+			env->SetObjectField(result,centerID,center.toJava(env, rotation, imgSize));
 			return result;
 		}
 	};

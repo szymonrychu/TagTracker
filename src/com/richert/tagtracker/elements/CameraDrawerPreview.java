@@ -9,6 +9,8 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import com.richert.tagtracker.activities.DriverActivity;
+import com.richert.tagtracker.multitouch.OnMultitouch;
+import com.richert.tagtracker.multitouch.Pointer;
 
 import android.app.Activity;
 import android.content.Context;

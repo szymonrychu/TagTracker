@@ -2,6 +2,7 @@
 #define HELPER_H
 
 #include <stdlib.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <sys/time.h>
 #include <math.h>
@@ -17,6 +18,8 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/video/tracking.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
+
 
 
 using namespace cv;
@@ -37,6 +40,7 @@ extern "C" {
 	static jmethodID jTagConsID;
 
 	jint JNI_OnLoad(JavaVM* vm, void* reserved){
+
 		JNIEnv* env;
 		if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
 			return -1;

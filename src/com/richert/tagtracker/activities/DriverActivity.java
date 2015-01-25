@@ -12,8 +12,8 @@ import com.richert.tagtracker.R.menu;
 import com.richert.tagtracker.elements.ControlsHelper;
 import com.richert.tagtracker.elements.DriverHelper;
 import com.richert.tagtracker.elements.FullScreenActivity;
-import com.richert.tagtracker.elements.OnMultitouch;
-import com.richert.tagtracker.elements.Pointer;
+import com.richert.tagtracker.multitouch.OnMultitouch;
+import com.richert.tagtracker.multitouch.Pointer;
 
 import android.app.Activity;
 import android.content.Context;

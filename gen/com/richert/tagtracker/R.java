@@ -46,6 +46,10 @@ containing a value of this type.
     }
     public static final class color {
         public static final int black_overlay=0x7f050000;
+        public static final int counter_text_bg=0x7f050004;
+        public static final int list_background=0x7f050001;
+        public static final int list_background_pressed=0x7f050003;
+        public static final int list_divider=0x7f050002;
     }
     public static final class dimen {
         /**  Default screen margins, per the Android Design guidelines. 
@@ -59,72 +63,84 @@ containing a value of this type.
         public static final int activity_vertical_margin=0x7f060001;
     }
     public static final class drawable {
-        public static final int ic_launcher=0x7f020000;
-        public static final int photo=0x7f020001;
-        public static final int tag1=0x7f020002;
-        public static final int tag10=0x7f020003;
-        public static final int tag11=0x7f020004;
-        public static final int tag12=0x7f020005;
-        public static final int tag13=0x7f020006;
-        public static final int tag14=0x7f020007;
-        public static final int tag15=0x7f020008;
-        public static final int tag16=0x7f020009;
-        public static final int tag17=0x7f02000a;
-        public static final int tag18=0x7f02000b;
-        public static final int tag19=0x7f02000c;
-        public static final int tag2=0x7f02000d;
-        public static final int tag20=0x7f02000e;
-        public static final int tag21=0x7f02000f;
-        public static final int tag22=0x7f020010;
-        public static final int tag23=0x7f020011;
-        public static final int tag24=0x7f020012;
-        public static final int tag25=0x7f020013;
-        public static final int tag26=0x7f020014;
-        public static final int tag27=0x7f020015;
-        public static final int tag28=0x7f020016;
-        public static final int tag29=0x7f020017;
-        public static final int tag3=0x7f020018;
-        public static final int tag30=0x7f020019;
-        public static final int tag31=0x7f02001a;
-        public static final int tag32=0x7f02001b;
-        public static final int tag4=0x7f02001c;
-        public static final int tag5=0x7f02001d;
-        public static final int tag6=0x7f02001e;
-        public static final int tag7=0x7f02001f;
-        public static final int tag8=0x7f020020;
-        public static final int tag9=0x7f020021;
+        public static final int counter_bg=0x7f020000;
+        public static final int ic_launcher=0x7f020001;
+        public static final int list_item_bg_normal=0x7f020002;
+        public static final int list_item_bg_pressed=0x7f020003;
+        public static final int list_selector=0x7f020004;
+        public static final int photo=0x7f020005;
+        public static final int tag1=0x7f020006;
+        public static final int tag10=0x7f020007;
+        public static final int tag11=0x7f020008;
+        public static final int tag12=0x7f020009;
+        public static final int tag13=0x7f02000a;
+        public static final int tag14=0x7f02000b;
+        public static final int tag15=0x7f02000c;
+        public static final int tag16=0x7f02000d;
+        public static final int tag17=0x7f02000e;
+        public static final int tag18=0x7f02000f;
+        public static final int tag19=0x7f020010;
+        public static final int tag2=0x7f020011;
+        public static final int tag20=0x7f020012;
+        public static final int tag21=0x7f020013;
+        public static final int tag22=0x7f020014;
+        public static final int tag23=0x7f020015;
+        public static final int tag24=0x7f020016;
+        public static final int tag25=0x7f020017;
+        public static final int tag26=0x7f020018;
+        public static final int tag27=0x7f020019;
+        public static final int tag28=0x7f02001a;
+        public static final int tag29=0x7f02001b;
+        public static final int tag3=0x7f02001c;
+        public static final int tag30=0x7f02001d;
+        public static final int tag31=0x7f02001e;
+        public static final int tag32=0x7f02001f;
+        public static final int tag4=0x7f020020;
+        public static final int tag5=0x7f020021;
+        public static final int tag6=0x7f020022;
+        public static final int tag7=0x7f020023;
+        public static final int tag8=0x7f020024;
+        public static final int tag9=0x7f020025;
     }
     public static final class id {
-        public static final int RelativeLayout1=0x7f0a000c;
+        public static final int RelativeLayout1=0x7f0a000d;
         public static final int any=0x7f0a0000;
         public static final int back=0x7f0a0001;
+        public static final int butt_main_camera2=0x7f0a000b;
         public static final int butt_main_driver=0x7f0a0009;
         public static final int butt_main_marker_gen=0x7f0a000a;
         public static final int butt_main_recognize=0x7f0a0008;
-        public static final int drive_action_debug=0x7f0a0013;
+        public static final int camera2_item_numeric=0x7f0a0019;
+        public static final int camera2_item_seekbar=0x7f0a001a;
+        public static final int camera2_item_type=0x7f0a0018;
+        public static final int camera2preview=0x7f0a0015;
+        public static final int drawer_layout=0x7f0a0014;
+        public static final int drive_action_debug=0x7f0a001b;
         public static final int driver_driverView=0x7f0a0005;
         public static final int driver_imageView=0x7f0a0003;
         public static final int front=0x7f0a0002;
-        public static final int fullscreen_content_controls=0x7f0a0010;
+        public static final int fullscreen_content_controls=0x7f0a0011;
         public static final int licences_text_view=0x7f0a0006;
+        public static final int linearLayout1=0x7f0a0017;
+        public static final int list_slidermenu=0x7f0a0016;
         public static final int logcat_clear_button=0x7f0a0007;
         public static final int logcat_text_view=0x7f0a0004;
-        public static final int main_action_about=0x7f0a0014;
-        public static final int main_action_licences=0x7f0a0015;
-        public static final int main_action_logcat=0x7f0a0016;
-        public static final int main_action_othercode=0x7f0a0017;
-        public static final int marker_image_view=0x7f0a000d;
-        public static final int marker_text_view=0x7f0a000e;
-        public static final int markergen_listview=0x7f0a000b;
-        public static final int othercode_text_view=0x7f0a000f;
-        public static final int recognize_action_debug=0x7f0a001b;
-        public static final int recognize_action_graph=0x7f0a001c;
-        public static final int recognize_action_resolution=0x7f0a0018;
-        public static final int recognize_action_set_tag=0x7f0a0019;
-        public static final int recognize_action_set_threads=0x7f0a001a;
-        public static final int recognize_force_speaking=0x7f0a001d;
-        public static final int recognize_preview=0x7f0a0011;
-        public static final int screenshot_button=0x7f0a0012;
+        public static final int main_action_about=0x7f0a001c;
+        public static final int main_action_licences=0x7f0a001d;
+        public static final int main_action_logcat=0x7f0a001e;
+        public static final int main_action_othercode=0x7f0a001f;
+        public static final int marker_image_view=0x7f0a000e;
+        public static final int marker_text_view=0x7f0a000f;
+        public static final int markergen_listview=0x7f0a000c;
+        public static final int othercode_text_view=0x7f0a0010;
+        public static final int recognize_action_debug=0x7f0a0023;
+        public static final int recognize_action_graph=0x7f0a0024;
+        public static final int recognize_action_resolution=0x7f0a0020;
+        public static final int recognize_action_set_tag=0x7f0a0021;
+        public static final int recognize_action_set_threads=0x7f0a0022;
+        public static final int recognize_force_speaking=0x7f0a0025;
+        public static final int recognize_preview=0x7f0a0012;
+        public static final int screenshot_button=0x7f0a0013;
     }
     public static final class layout {
         public static final int activity_about=0x7f030000;
@@ -136,6 +152,8 @@ containing a value of this type.
         public static final int activity_markergenerator_listitem=0x7f030006;
         public static final int activity_othercode=0x7f030007;
         public static final int activity_recognize=0x7f030008;
+        public static final int camera2_demo=0x7f030009;
+        public static final int camera2_drawer_item=0x7f03000a;
     }
     public static final class menu {
         public static final int driver=0x7f090000;

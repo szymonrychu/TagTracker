@@ -18,7 +18,9 @@ public class Misc {
 	    } else {
         	System.loadLibrary("misc");
         	System.loadLibrary("recognize");
+        	System.loadLibrary("recognizer");
         	System.loadLibrary("calibrate");
+        	System.loadLibrary("detector");
 	    }
 	}
 	private static native Object yuvToRgbNtv(long yuvAddr, int rotation);

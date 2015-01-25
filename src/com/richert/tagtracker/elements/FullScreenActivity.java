@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.view.WindowManager;
 
 public abstract class FullScreenActivity extends Activity{
 	private View decorView;
@@ -22,6 +23,7 @@ public abstract class FullScreenActivity extends Activity{
 	protected abstract void onSystemBarsHided();
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		decorView = this.getWindow().getDecorView();
 		if(android.os.Build.VERSION.SDK_INT > android.os.Build.VERSION_CODES.GINGERBREAD_MR1 ){
 			actionBar = getActionBar();

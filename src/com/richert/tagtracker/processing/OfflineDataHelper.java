@@ -5,8 +5,10 @@ import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
@@ -21,16 +23,10 @@ import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.util.Log;
+import android.util.Size;
 import android.widget.Toast;
 
 public class OfflineDataHelper {
-	static {
-		if (!OpenCVLoader.initDebug()) {
-	        // Handle initialization error
-	    } else {
-	    	//TODO
-	    }
-	}
 	private final static String TAG=OfflineDataHelper.class.getSimpleName();
 	private final static String SHARED_PREFERENCES_NAME="camera_preferences";
 	private final static String PREFERENCE_RESOLUTION_WIDTH="resolution_width";
@@ -42,6 +38,87 @@ public class OfflineDataHelper {
 	private final static String DELIM=":";
 	private final static String ROW_DELIM=";";
 	private SharedPreferences preferences;
+	public String loadStringPreference(String key, String defaultValue){
+		return preferences.getString(key, defaultValue);
+	}
+	public int loadIntPreference(String key, int defaultValue){
+		return preferences.getInt(key, defaultValue);
+	}
+	public float loadFloatPreference(String key, float defaultValue){
+		return preferences.getFloat(key, defaultValue);
+	}
+	public boolean loadBoolPreference(String key, boolean defaultValue){
+		return preferences.getBoolean(key, defaultValue);
+	}
+	public Size loadSizePreference(String key, Size defaultValue){
+		Set<String> valueList = new HashSet<String>();
+		String w = "w"+DELIM+defaultValue.getWidth();
+		String h = "h"+DELIM+defaultValue.getHeight();
+		valueList.add(w);
+		valueList.add(h);
+		int W = -1;
+		int H = -1;
+		try{
+			Set<String> result = preferences.getStringSet(key, valueList);
+			if(result.size() != 2){
+				return defaultValue;
+			}
+			for(String string : result){
+				if(string.startsWith("w"+DELIM)){
+					try{
+						W = Integer.parseInt(string.substring(2));
+					}catch(NumberFormatException e){
+						return defaultValue;
+					}
+					
+				}else if(string.startsWith("h"+DELIM)){
+					try{
+						H = Integer.parseInt(string.substring(2));
+					}catch(NumberFormatException e){
+						return defaultValue;
+					}
+				}
+			}
+		}catch(ClassCastException e){
+			
+		}
+		
+		
+		
+		if(W < 0 && H < 0){
+			return defaultValue;
+		}else{
+			return new Size(W, H);
+		}
+	}
+	public void saveSizePreference(String key, Size value){
+		Set<String> valueList = new HashSet<String>();
+		valueList.add("w"+DELIM+value.getWidth());
+		valueList.add("h"+DELIM+value.getHeight());
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.putStringSet(key, valueList);
+		editor.commit();
+	}
+	public void saveStringPreference(String key, String value){
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.putString(key, value);
+		editor.commit();
+	}
+	public void saveIntPreference(String key, int value){
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.putInt(key, value);
+		editor.commit();
+	}
+	public void saveFloatPreference(String key, float value){
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.putFloat(key, value);
+		editor.commit();
+	}
+	public void saveBoolPreference(String key, boolean value){
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.putBoolean(key, value);
+		editor.commit();
+	}
 	/**
 	 * Constructor
 	 * @param context

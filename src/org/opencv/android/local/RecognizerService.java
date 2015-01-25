@@ -9,6 +9,7 @@ import com.richert.tagtracker.processing.LoadBalancer.InvalidStateException;
 import com.richert.tagtracker.processing.LoadBalancer.Task;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
@@ -31,7 +32,6 @@ public class RecognizerService extends Service {
 	private native void insightNtv(long ptr, long mYuv);
 	private MatProcessingBinder binder;
 	private LoadBalancer loadBalancer;
-
 	public interface ProcessingCallback{
 		void post(Tag[] tagz);
 	}

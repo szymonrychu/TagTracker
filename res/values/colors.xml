@@ -1,5 +1,9 @@
 <resources>
 
     <color name="black_overlay">#66000000</color>
+    <color name="list_background">#66000000</color>
+    <color name="list_divider">#66963335</color>
+    <color name="list_background_pressed">#66545454</color>
+    <color name="counter_text_bg">#66A82326</color>
 
 </resources>

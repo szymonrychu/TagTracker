@@ -1,4 +1,4 @@
-package com.richert.tagtracker.elements;
+package com.richert.tagtracker.multitouch;
 
 public class Pointer{
 	public int id;

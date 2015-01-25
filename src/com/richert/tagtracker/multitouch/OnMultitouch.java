@@ -1,4 +1,4 @@
-package com.richert.tagtracker.elements;
+package com.richert.tagtracker.multitouch;
 
 import android.util.SparseArray;
 import android.view.MotionEvent;
