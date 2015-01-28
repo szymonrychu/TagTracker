@@ -1,109 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.richert.tagtracker"
+    package="com.rychu.tagtracker"
     android:versionCode="1"
     android:versionName="1.0" >
 
     <uses-sdk
         android:minSdkVersion="21"
         android:targetSdkVersion="21" />
-	
-    
+
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_LOGS" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-
+    
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
     <uses-feature
         android:name="android.hardware.camera.autofocus"
         android:required="true" />
-    <uses-feature
-        android:name="android.hardware.camera.front"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.front.autofocus"
-        android:required="false" />
     
-    <uses-feature android:name="android.hardware.usb.host"
-        android:required="false" />
-
+    
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        <service
-            android:name="com.richert.tagtracker.usb.UsbConnectionService"
-            android:exported="false">
+        <activity
+            android:name="com.rychu.tagtracker.activities.DriverActivity"
+            android:label="@string/app_name" >
             <intent-filter>
 				<action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
             </intent-filter>
             <meta-data
       			android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" 
       			android:resource="@xml/device_filter" />
-        </service>
-        <service android:name="org.opencv.android.local.RecognizerService"
-            android:enabled = "true">
-        </service>
-        <service android:name="com.richert.tagtracker.monitor.MonitoringService"
-            android:enabled = "true">
-        </service>
+        </activity>
         <activity
-            android:name="com.richert.tagtracker.activities.MainActivity"
+            android:name="com.rychu.tagtracker.activities.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.richert.tagtracker.activities.Camera2Activity"
-            android:label="Camera2 Demo">
-        </activity>
-        <activity
-            android:name="com.richert.tagtracker.activities.LogcatActivity"
-            android:label="@string/title_activity_logcat">
-        </activity>
-        <activity
-            android:name="com.richert.tagtracker.activities.RecognizeActivity"
-        	android:hardwareAccelerated="true"
-            android:screenOrientation="landscape"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_recognize"
-            android:theme="@style/android:Theme.Material"
-            android:launchMode="singleInstance" >
-        </activity>
-        <activity
-            android:name="com.richert.tagtracker.activities.MarkerGeneratorActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_marker_generator"
-            android:theme="@style/android:Theme.Material" >
-        </activity>
-        <activity
-            android:name="com.richert.tagtracker.activities.DriverActivity"
-            android:label="@string/title_activity_driver"
-            android:launchMode="singleInstance">
-        </activity>
-        <activity
-            android:name="com.richert.tagtracker.activities.AboutActivity"
-            android:label="@string/title_activity_about"
-            android:theme="@style/android:Theme.Material" >
-        </activity>
-        <activity
-            android:name="com.richert.tagtracker.activities.LicencesActivity"
-            android:label="@string/title_activity_licences"
-            android:theme="@style/android:Theme.Material" >
-        </activity>
-        <activity
-            android:name="com.richert.tagtracker.activities.OtherCodesActivity"
-            android:label="@string/title_activity_driver">
-        </activity>
-        
     </application>
 
 </manifest>

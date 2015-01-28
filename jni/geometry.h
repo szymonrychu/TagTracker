@@ -271,8 +271,8 @@ public:
 			jfieldID lenID = env->GetFieldID(jTagCls,"len","D");
 			jfieldID homoID = env->GetFieldID(jTagCls,"homo","Lorg/opencv/core/Mat;");
 			jfieldID previewID = env->GetFieldID(jTagCls,"preview","Lorg/opencv/core/Mat;");
-			jfieldID pointsID = env->GetFieldID(jTagCls,"points","[Lorg/opencv/android/local/Point;");
-			jfieldID centerID = env->GetFieldID(jTagCls,"center","Lorg/opencv/android/local/Point;");
+			jfieldID pointsID = env->GetFieldID(jTagCls,"points","[Lcom/rychu/tagtracker/opencv/Point;");
+			jfieldID centerID = env->GetFieldID(jTagCls,"center","Lcom/rychu/tagtracker/opencv/Point;");
 
 			jobject result = env->NewObject(jTagCls,jTagConsID);
 
@@ -295,8 +295,8 @@ public:
 			jfieldID lenID = env->GetFieldID(jTagCls,"len","D");
 			jfieldID homoID = env->GetFieldID(jTagCls,"homo","Lorg/opencv/core/Mat;");
 			jfieldID previewID = env->GetFieldID(jTagCls,"preview","Lorg/opencv/core/Mat;");
-			jfieldID pointsID = env->GetFieldID(jTagCls,"points","[Lorg/opencv/android/local/Point;");
-			jfieldID centerID = env->GetFieldID(jTagCls,"center","Lorg/opencv/android/local/Point;");
+			jfieldID pointsID = env->GetFieldID(jTagCls,"points","[Lcom/rychu/tagtracker/opencv/Point;");
+			jfieldID centerID = env->GetFieldID(jTagCls,"center","Lcom/rychu/tagtracker/opencv/Point;");
 
 			jobject result = env->NewObject(jTagCls,jTagConsID);
 

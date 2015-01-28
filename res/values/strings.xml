@@ -102,4 +102,7 @@
     <string name="num80th">eightieth</string>
     <string name="num90th">ninetieth</string>
     <string name="logcat_clear_button_string">Clear</string>
+    <string name="mainActivity_recognizer_string">Recognizer</string>
+    <string name="main_recognizer">Recognizer</string>
+    <string name="main_controller">Controller</string>
 </resources>

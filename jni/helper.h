@@ -50,11 +50,11 @@ extern "C" {
 		jMatGetNatAddr = env->GetMethodID(jMatCls,"getNativeObjAddr","()J");
 		jMatConsID = env->GetMethodID(jMatCls,"<init>","()V");
 
-		jclass jPointTmp = env->FindClass("org/opencv/android/local/Point");
+		jclass jPointTmp = env->FindClass("com/rychu/tagtracker/opencv/Point");
 		jPointCls = (jclass)env->NewGlobalRef(jPointTmp);
 		jPointConsID = env->GetMethodID(jPointCls,"<init>","()V");
 
-		jclass jTagTmp = env->FindClass("org/opencv/android/local/Tag");
+		jclass jTagTmp = env->FindClass("com/rychu/tagtracker/opencv/Tag");
 		jTagCls = (jclass)env->NewGlobalRef(jTagTmp);
 		jTagConsID = env->GetMethodID(jPointCls,"<init>","()V");
 
