@@ -3,16 +3,19 @@
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="com.android.toolchain.gcc.1456263632">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.android.toolchain.gcc.1456263632" moduleId="org.eclipse.cdt.core.settings" name="Default">
+				<macros>
+					<stringMacro name="OPENCV_HOME" type="VALUE_PATH_DIR" value="/android/OpenCV-2.4.10-android-sdk"/>
+				</macros>
 				<externalSettings>
 					<externalSetting>
 						<entry flags="BUILTIN|READONLY|RESOLVED" kind="includePath" name="C:/Users/szymonri/Dev/android-ndk-r10c/sources/cxx-stl/gnu-libstdc++/4.6/libs/armeabi-v7a/include"/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -28,47 +31,32 @@
 								</inputType>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1937469439" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
-								<option id="gnu.c.compiler.option.include.paths.60628568" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="C:/Users/szymonri/Dev/android-ndk-r10c/platforms/android-21/ach-arm/usr/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/szymonri/Dev/android-ndk-r10c/sources/cxx-stl/gnu-libstdc++/4.9/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/szymonri/Dev/android-ndk-r10c/sources/cxx-stl/gnu-libstdc++/4.9/include/backward"/>
-									<listOptionValue builtIn="false" value="C:/Users/szymonri/Dev/android-ndk-r10c/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\platforms\android-21\arch-arm\usr\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\sources\cxx-stl\gnu-libstdc++\4.9\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\sources\cxx-stl\gnu-libstdc++\4.9\include\backward&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\sources\cxx-stl\gnu-libstdc++\4.9\libs\armeabi-v7a\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9\include-fixed&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\OpenCV-2.4.10-android-sdk\sdk\native\jni\include&quot;"/>
+								<option id="gnu.c.compiler.option.include.paths.60628568" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/android/android-ndk-r10d/platforms/android-21/arch-arm/usr/include"/>
+									<listOptionValue builtIn="false" value="/android/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/include"/>
+									<listOptionValue builtIn="false" value="/android/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include"/>
+									<listOptionValue builtIn="false" value="../android/android-ndk-r10d/toolchains/arm-linux-androideabi-4.8/prebuilt/darwin-x86_64/lib/gcc/arm-linux-androideabi/4.8/include"/>
+									<listOptionValue builtIn="false" value="/home/szymon/android/OpenCV-2.4.10-android-sdk/sdk/native/jni/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2065645912" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.631799058" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
-								<option id="gnu.cpp.compiler.option.include.paths.1195448907" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="C:/Users/szymonri/Dev/android-ndk-r10c/platforms/android-21/ach-arm/usr/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/szymonri/Dev/android-ndk-r10c/sources/cxx-stl/gnu-libstdc++/4.9/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/szymonri/Dev/android-ndk-r10c/sources/cxx-stl/gnu-libstdc++/4.9/include/backward"/>
-									<listOptionValue builtIn="false" value="C:/Users/szymonri/Dev/android-ndk-r10c/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\platforms\android-21\arch-arm\usr\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\sources\cxx-stl\gnu-libstdc++\4.9\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\sources\cxx-stl\gnu-libstdc++\4.9\include\backward&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\sources\cxx-stl\gnu-libstdc++\4.9\libs\armeabi-v7a\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9\include-fixed&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\OpenCV-2.4.10-android-sdk\sdk\native\jni\include&quot;"/>
+								<option id="gnu.cpp.compiler.option.include.paths.1195448907" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/android/android-ndk-r10d/platforms/android-21/arch-arm/usr/include"/>
+									<listOptionValue builtIn="false" value="/android/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/include"/>
+									<listOptionValue builtIn="false" value="/android/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include"/>
+									<listOptionValue builtIn="false" value="../android/android-ndk-r10d/toolchains/arm-linux-androideabi-4.8/prebuilt/darwin-x86_64/lib/gcc/arm-linux-androideabi/4.8/include"/>
+									<listOptionValue builtIn="false" value="/home/szymon/android/OpenCV-2.4.10-android-sdk/sdk/native/jni/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1644958859" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.1737702411" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler">
 								<option id="gnu.both.asm.option.include.paths.775099260" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\platforms\android-21\arch-arm\usr\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\sources\cxx-stl\gnu-libstdc++\4.9\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\sources\cxx-stl\gnu-libstdc++\4.9\include\backward&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\sources\cxx-stl\gnu-libstdc++\4.9\libs\armeabi-v7a\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\android-ndk-r10c\toolchains\arm-linux-androideabi-4.9\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9\include-fixed&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\OpenCV-2.4.10-android-sdk\sdk\native\jni\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Users\szymonri\Dev\fastcv&quot;"/>
+									<listOptionValue builtIn="false" value="/android/android-ndk-r10d/platforms/android-21/arch-arm/usr/include"/>
+									<listOptionValue builtIn="false" value="/android/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/include"/>
+									<listOptionValue builtIn="false" value="/android/android-ndk-r10d/sources/cxx-stl/gnu-libstdc++/4.8/include"/>
+									<listOptionValue builtIn="false" value="../android/android-ndk-r10d/toolchains/arm-linux-androideabi-4.8/prebuilt/darwin-x86_64/lib/gcc/arm-linux-androideabi/4.8/include"/>
+									<listOptionValue builtIn="false" value="/home/szymon/android/OpenCV-2.4.10-android-sdk/sdk/native/jni/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.875023780" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -117,4 +105,5 @@
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 </cproject>
