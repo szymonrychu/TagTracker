@@ -163,6 +163,7 @@ public class TextToSpeechToText {
 		if(tts != null){
 			tts.stop();
 			tts.shutdown();
+			tts = null;
 		}
 	}
 	public String recognizeText(){

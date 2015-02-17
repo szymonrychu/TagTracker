@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.rychu.tagtracker.R;
 import com.rychu.tagtracker.activities.util.FullScreenActivity;
+import com.rychu.tagtracker.fragments.CalibrateFragment;
 import com.rychu.tagtracker.fragments.ControllerFragment;
 import com.rychu.tagtracker.fragments.RecognizerFragment;
 import com.rychu.tagtracker.opencv.Misc;
@@ -36,7 +37,8 @@ public class DriverActivity extends FullScreenActivity {
 	private final static String TAG = DriverActivity.class.getSimpleName();
 	public final static int FRAGMENT_CONTROLLER = 0x01;
 	public final static int FRAGMENT_RECOGNIZER = 0x02;
-	
+	public final static int FRAGMENT_CALIBRATE = 0x03;
+	private final static int MENU_CALIBRATE = 0;
 	private FragmentManager fragmentManager;
 	private OfflineStore offlineStore;
 	@Override
@@ -61,6 +63,10 @@ public class DriverActivity extends FullScreenActivity {
 			RecognizerFragment recognizerFragment = new RecognizerFragment();
 			setFragment(recognizerFragment, FRAGMENT_RECOGNIZER);
 			break;
+		case FRAGMENT_CALIBRATE:
+			CalibrateFragment calibrateFragment = new CalibrateFragment();
+			setFragment(calibrateFragment, FRAGMENT_CALIBRATE);
+			break;
 		}
 		
 		super.onCreate(savedInstanceState);
@@ -79,23 +85,26 @@ public class DriverActivity extends FullScreenActivity {
 	}
 	private void switchFragment(Fragment fragment){
 		FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-		fragmentTransaction.replace(R.layout.activity_driver, fragment);
+		fragmentTransaction.replace(R.layout.fragment_driver_calibrate, fragment);
 		fragmentTransaction.addToBackStack(null);
 		fragmentTransaction.commit();
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.driver, menu);
+		menu.add(0, MENU_CALIBRATE, 0, "calibrate servos"); //getResources().getString(R.string.mess_1);
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
+		switch(id){
+		case MENU_CALIBRATE:
+			switchFragment(new CalibrateFragment());
 			return true;
+		default:
+			return false;
 		}
-		return super.onOptionsItemSelected(item);
 	}
 
 

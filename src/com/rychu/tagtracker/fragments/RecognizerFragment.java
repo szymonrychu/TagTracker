@@ -41,6 +41,7 @@ public class RecognizerFragment extends Fragment implements Camera2SetupCallback
 		speechProcessor = new RobotSpeechProcessor(getActivity()){
 			@Override
 			public void setFollowedTag(int tagID) {
+				Log.v(TAG, "following tag number: "+tagID);
 				recognizer.setTrackedTagId(tagID);
 			}
 		};

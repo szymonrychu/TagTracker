@@ -47,6 +47,8 @@
     <string name="ERROR_CODE_9">Insufficient permissions </string>
     <string name="response_yes">yes </string>
     <string name="response_no">no </string>
+    <string name="servo_X_range_string">X servo range: </string>
+    <string name="servo_Z_range_string">Z servo range: </string>
     
     <string name="numminus">minus</string>
     <string name="num0">zero</string>
@@ -105,4 +107,8 @@
     <string name="mainActivity_recognizer_string">Recognizer</string>
     <string name="main_recognizer">Recognizer</string>
     <string name="main_controller">Controller</string>
+    <string name="calibrate_servo1_min_text">Servo 1 min</string>
+    <string name="calibrate_servo1_max_text">Servo 1 max</string>
+    <string name="calibrate_servo2_min_text">Servo 2 min</string>
+    <string name="calibrate_servo2_max_text">Servo 2 max</string>
 </resources>

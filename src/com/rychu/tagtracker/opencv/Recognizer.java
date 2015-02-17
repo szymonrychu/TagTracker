@@ -46,10 +46,13 @@ public class Recognizer implements Camera2ProcessingCallback {
 	private Boolean followedTagWasFound = false;
 	private long timestamp;
 	private int ids[];
+	private float pivotZ;
+	private float closestDistance = 0.45f;
 	public void setTTSCallback(TTSCallback c){
 		this.ttsCallback = c;
 	}
 	public void setTrackedTagId(int id){
+		timestamp = System.currentTimeMillis();
 		followed.id = id;
 	}
 	@Override
@@ -57,8 +60,9 @@ public class Recognizer implements Camera2ProcessingCallback {
 		ptr = newRecognizerNtv();
 		paint = new Paint();
 		paint.setStrokeWidth(3);
+		paint.setTextSize(20);
 		followed = new Tag();
-		followed.id = 2;
+		followed.id = -1;
 		ids = null;
 	}
 	@Override
@@ -109,11 +113,10 @@ public class Recognizer implements Camera2ProcessingCallback {
 			
 			
 			
-			float x = 0.0f;
 			float y = 0.0f;
+			float x = 0.0f;
 			paint.setColor(Color.BLUE);
 			if(followed.id > 0){
-				x = -1.0f;
 				
 				
 
@@ -134,9 +137,17 @@ public class Recognizer implements Camera2ProcessingCallback {
 				canvas.drawLine(canvas.getWidth()-xDeltaR, 0, canvas.getWidth()-xDeltaR, canvas.getHeight(), paint);
 				
 				float xSpace = canvas.getWidth() - (xDeltaL + xDeltaR);
+				float dist = xSpace / canvas.getWidth();
+				float distance = dist * dist;
+				if(distance > closestDistance){
+					y = -(distance - closestDistance) / (1 - closestDistance);
+				}else{
+					y = 1 -distance / closestDistance;
+					
+				}
 				
 				
-				y = 2*((followed.center.x-xDeltaL) / xSpace) -1;
+				x = 2*((followed.center.x-xDeltaL) / xSpace) -1;
 			}
 
 			float yDeltaU = meanY - minY;
@@ -148,27 +159,34 @@ public class Recognizer implements Camera2ProcessingCallback {
 			
 			
 			
-			float z = 2*((meanY - yDeltaU) / ySpace) -1; 
+			pivotZ = 1- 2*((meanY - yDeltaU) / ySpace);
 			if(usbConnection != null){
-				usbConnection.steer(x,y,z);
+				usbConnection.steer(x,y,pivotZ);
 			}
 			if(ttsCallback != null){
 				ttsCallback.tagsWereFound(ids);
 			}
+		}else{
+			if(ttsCallback != null){
+				ttsCallback.tagsWereFound(new int[0]);
+			}
+			usbConnection.steer(0,0,pivotZ);
 		}
-		
+
 		if(followedTagWasFound){
 			timestamp = System.currentTimeMillis();
 		}else if(System.currentTimeMillis() - timestamp > MAX_UNFOLLOW_TIME){
-			followed.id = -1;
+			usbConnection.steer(0,0,pivotZ);
 			if(ttsCallback != null){
 				ttsCallback.followedTagWasLost();
 			}
 		}
+		canvas.drawText(usbConnection.buffer, 50, 50, paint);
 	}
 	
 	@Override
 	public void destroy() {
+		usbConnection.steer(0,0,pivotZ);
 		delRecognizerNtv(ptr);
 	}
 	@Override

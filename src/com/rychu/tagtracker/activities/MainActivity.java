@@ -13,13 +13,14 @@ import android.widget.Button;
 public class MainActivity extends Activity {
 	private Button recognizerButton;
 	private Button controllerButton;
+	private Button calibrateButton;
 	private Intent recognizerIntent;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		setContentView(R.layout.activity_main);
 		recognizerButton = (Button) findViewById(R.id.main_recognizer_button);
 		controllerButton = (Button) findViewById(R.id.main_controller_button);
-
+		calibrateButton = (Button) findViewById(R.id.main_calibrate_button);
 		recognizerIntent = new Intent(getBaseContext(), DriverActivity.class);
 		recognizerButton.setOnClickListener(new OnClickListener() {
 			@Override
@@ -32,6 +33,13 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				recognizerIntent.putExtra(DriverActivity.DESIRED_FRAGMENT_KEY, DriverActivity.FRAGMENT_CONTROLLER);
+				startActivity(recognizerIntent);
+			}
+		});
+		calibrateButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				recognizerIntent.putExtra(DriverActivity.DESIRED_FRAGMENT_KEY, DriverActivity.FRAGMENT_CALIBRATE);
 				startActivity(recognizerIntent);
 			}
 		});

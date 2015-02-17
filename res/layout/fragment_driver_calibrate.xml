@@ -1,0 +1,43 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.rychu.tagtracker.activities.DriverActivity"
+    tools:ignore="MergeRootFrame" >
+
+    <TextView
+        android:id="@+id/calibrate_servo1_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:text="Large Text"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <com.appyvet.rangebar.RangeBar
+        android:id="@+id/calibrate_servo1_rb"
+        android:layout_width="wrap_content"
+        android:layout_height="100sp"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/calibrate_servo1_tv" />
+
+    <TextView
+        android:id="@+id/calibrate_servo2_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/calibrate_servo1_rb"
+        android:text="Large Text"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <com.appyvet.rangebar.RangeBar
+        android:id="@+id/calibrate_servo2_rb"
+        android:layout_width="wrap_content"
+        android:layout_height="100sp"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/calibrate_servo2_tv" />
+
+</RelativeLayout>

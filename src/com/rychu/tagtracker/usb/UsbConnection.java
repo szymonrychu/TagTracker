@@ -48,7 +48,6 @@ public abstract class UsbConnection implements Runnable{
     
     
     public void alterBuffer(int data[]) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
-    	Log.d(TAG, buffer);
     	if(data.length != MAX_PWM_CHANNELS){
     		throw new IllegalArgumentException("data.length != "+ MAX_PWM_CHANNELS);
     	}
@@ -56,12 +55,11 @@ public abstract class UsbConnection implements Runnable{
     	for(int c=0; c< MAX_PWM_CHANNELS; c++){
     		int d = data[c];
     		if( d > 255 || d < 0){
-        		throw new IllegalArgumentException("data["+c+"] not within a range [-255, 255] "+d);
+        		throw new IllegalArgumentException("data["+c+"] not within a range [0, 255] "+d);
         	}
-    		sb.append(d);
+    		sb.append(String.format("%03d", d));
     		sb.append(",");
     	}
-    	Log.v(TAG, buffer);
     	buffer = sb.toString();
     }
 	@Override

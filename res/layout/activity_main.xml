@@ -24,4 +24,13 @@
         android:layout_below="@+id/main_recognizer_button"
         android:text="@string/main_controller" />
 
+    <Button
+        android:id="@+id/main_calibrate_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/main_controller_button"
+        android:text="@string/main_controller" />
+
 </RelativeLayout>
