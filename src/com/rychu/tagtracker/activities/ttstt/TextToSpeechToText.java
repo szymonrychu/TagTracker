@@ -49,7 +49,6 @@ public class TextToSpeechToText {
 	protected Bundle params;
 	protected int eventType;
 	protected byte[] receivedBuffer;
-	private LanguageHelper langHelper;
 	private int[] waitingForResponse;
 	private int[] waitingForEndTalking;
 	private String response;
@@ -133,11 +132,9 @@ public class TextToSpeechToText {
 						speechToTextListener.onEvent(LanguageHelper.EVENT_BEGINNING_OF_SPEECH);
 					}
 				});
-        		if(speakAndRecognize){
-					Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-			        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
-	        		recognizer.startListening(intent);
-        		}
+				Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+		        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
+        		recognizer.startListening(intent);
         	}
         }
 	};
@@ -147,7 +144,6 @@ public class TextToSpeechToText {
 	public TextToSpeechToText(Context context){
 		
 		this.context = context;
-		this.langHelper = new LanguageHelper(context);
 	}
 	private Boolean speakAndRecognize;
 	public void setSpeechToTextListener(SpeechToTextListener listener){
@@ -166,6 +162,9 @@ public class TextToSpeechToText {
 			tts = null;
 		}
 	}
+	public void recognize(){
+		((Activity) context).runOnUiThread(onUIThread);
+	}
 	public String recognizeText(){
 		if(speechToTextListener == null){
 			return null;
@@ -173,9 +172,7 @@ public class TextToSpeechToText {
 		if(!speakAndRecognize){
 			return null;
 		}
-		recognitionResult = null;
-		((Activity) context).runOnUiThread(onUIThread);
-		return recognitionResult;
+		return null;
 	}
 
 	public String speak(String text, Boolean waitForResponse) throws InterruptedException{
@@ -190,7 +187,7 @@ public class TextToSpeechToText {
 		if(interrupted){
 			throw new InterruptedException();
 		}
-		return response;
+		return recognitionResult;
 	}
 	public void speak(final String text){
 		if(speechToTextListener == null || !speakAndRecognize){

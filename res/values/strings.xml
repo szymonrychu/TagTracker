@@ -27,7 +27,7 @@
     <string name="recognize_action_set_threads">Threads</string>
     <string name="recognize_action_graph">CPU chart</string>
     <string name="recognizer_force_speaking">Force speaking</string>
-    <string name="WHAT_TAG_FOLLOW">What tag number should I follow? </string>
+    <string name="WHAT_TAG_FOLLOW">What tag number should I follow? Your options: </string>
     <string name="DONT_SEE_TAGZ">I don\'t see any tags, stopping! </string>
     <string name="FOLLOWING">Following tag number </string>
     <string name="I_DIDNT_CATCH_THAT">I didn\'t catch that! you said: </string>

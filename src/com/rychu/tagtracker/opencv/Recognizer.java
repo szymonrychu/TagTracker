@@ -28,8 +28,7 @@ public class Recognizer implements Camera2ProcessingCallback {
 		this.usbConnection = usbConnection;
 	}
 	public interface TTSCallback{
-		public void tagsWereFound(int[] tagIds);
-		public void followedTagWasLost();
+		public void tagsWereFound(int[] tagIds, long timestamp);
 	}
 	private TTSCallback ttsCallback;
 	private UsbConnection usbConnection;
@@ -42,8 +41,6 @@ public class Recognizer implements Camera2ProcessingCallback {
 	private Tag[] tagz;
 	private float tagPreviewX, tagPreviewY;
 	private Tag followed;
-	private final static long MAX_UNFOLLOW_TIME = 5000;
-	private Boolean followedTagWasFound = false;
 	private long timestamp;
 	private int ids[];
 	private float pivotZ;
@@ -71,8 +68,8 @@ public class Recognizer implements Camera2ProcessingCallback {
 	}
 	@Override
 	public void redraw(Canvas canvas, int w, int h) {
+		long now = System.currentTimeMillis();
 		tagPreviewX = tagPreviewY = 0;
-		followedTagWasFound = false;
 		if(tagz != null){
 			float meanY = 0;
 			float minY = Float.MAX_VALUE;
@@ -87,7 +84,6 @@ public class Recognizer implements Camera2ProcessingCallback {
 					paint = new Paint(this.paint);
 					paint.setColor(Color.GREEN);
 					followed = t;
-					followedTagWasFound = true;
 				}else{
 					paint = new Paint(this.paint);
 					paint.setColor(Color.RED);
@@ -164,22 +160,17 @@ public class Recognizer implements Camera2ProcessingCallback {
 				usbConnection.steer(x,y,pivotZ);
 			}
 			if(ttsCallback != null){
-				ttsCallback.tagsWereFound(ids);
+				ttsCallback.tagsWereFound(ids, now);
 			}
 		}else{
 			if(ttsCallback != null){
-				ttsCallback.tagsWereFound(new int[0]);
+				ttsCallback.tagsWereFound(new int[0], now);
 			}
 			usbConnection.steer(0,0,pivotZ);
 		}
 
-		if(followedTagWasFound){
-			timestamp = System.currentTimeMillis();
-		}else if(System.currentTimeMillis() - timestamp > MAX_UNFOLLOW_TIME){
+		if(followed.id == -1){
 			usbConnection.steer(0,0,pivotZ);
-			if(ttsCallback != null){
-				ttsCallback.followedTagWasLost();
-			}
 		}
 		canvas.drawText(usbConnection.buffer, 50, 50, paint);
 	}

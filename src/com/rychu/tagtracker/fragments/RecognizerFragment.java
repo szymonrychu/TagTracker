@@ -24,6 +24,7 @@ import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 public class RecognizerFragment extends Fragment implements Camera2SetupCallback{
 	private View rootView;
@@ -43,6 +44,17 @@ public class RecognizerFragment extends Fragment implements Camera2SetupCallback
 			public void setFollowedTag(int tagID) {
 				Log.v(TAG, "following tag number: "+tagID);
 				recognizer.setTrackedTagId(tagID);
+			}
+			@Override
+			public void makeToast(final String text) {
+				getActivity().runOnUiThread(new Runnable() {
+					
+					@Override
+					public void run() {
+						Toast.makeText(getActivity(), text, Toast.LENGTH_SHORT).show();
+					}
+				});
+				
 			}
 		};
 		recognizer = new Recognizer(usbRobotController);
