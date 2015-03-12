@@ -79,8 +79,8 @@ public class RecognizerFragment extends Fragment implements Camera2SetupCallback
 		preview.setCamera2ProcessingCallback(recognizer);
 		try {
 			preview.startPreview(this);
-			preview.setMaxPoolSize(4);
-			preview.setMaxThreadsNum(4);
+			preview.setMaxPoolSize(6);
+			preview.setMaxThreadsNum(6);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}catch (InvalidStateException e) {

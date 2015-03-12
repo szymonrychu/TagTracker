@@ -85,8 +85,7 @@ public class DriverActivity extends FullScreenActivity {
 	}
 	private void switchFragment(Fragment fragment){
 		FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-		fragmentTransaction.replace(R.layout.fragment_driver_calibrate, fragment);
-		fragmentTransaction.addToBackStack(null);
+		fragmentTransaction.replace(R.id.container, fragment);
 		fragmentTransaction.commit();
 	}
 	@Override

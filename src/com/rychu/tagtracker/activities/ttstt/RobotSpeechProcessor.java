@@ -32,11 +32,14 @@ public abstract class RobotSpeechProcessor implements SpeechToTextListener, TTSC
 	private HashMap<Integer, Long> validTags;
 	private HashMap<Integer, Long> latestTimestamps;
 	private LinkedList<Integer> tagsToFollow;
-	private final static long MAX_TIME_DELTA = 1000;
 	private long previousTimestamp = 0;
+	private final static long MAX_TIME_DELTA = 1000;
+	private final static int MAX_ERROR_NUM = 3;
+	private final static float MIN_CONFIDENCE = 0.35f;
 	private final int STATE_WAITING_FOR_DECISION = 0x01;
 	private final int STATE_TAG_WAS_LOST = 0x02;
 	private int state = 0x00;
+	private int errorCounter = 0;
 	
 	public RobotSpeechProcessor(Context context) {
 		this.context = context;
@@ -149,23 +152,39 @@ public abstract class RobotSpeechProcessor implements SpeechToTextListener, TTSC
 	}
 	@Override
 	public void onRecognitionResult(String result, float confidence) {
+		errorCounter = 0;
+		Log.d(TAG, "recognition result: " + result );
 		switch(state){
 		case STATE_WAITING_FOR_DECISION:
-			for(int num=0;num<MAX_TAG;num++){
-				String resultNum =  translator.getNum(num);
-				if(result.contains(resultNum)){
+			if(confidence > MIN_CONFIDENCE){
+				try{
+					int num = Integer.parseInt(result);
 					setFollowedTag(num);
-					break;
+				}catch(NumberFormatException e){}
+				for(int num=0;num<MAX_TAG;num++){
+					String resultNum =  translator.getNum(num);
+					if(result.contains(resultNum)){
+						setFollowedTag(num);
+						break;
+					}
+					resultNum = translator.getNumTH(num);
+					if(result.contains(resultNum)){
+						setFollowedTag(num);
+						break;
+					}
 				}
-				resultNum = translator.getNumTH(num);
-				if(result.contains(resultNum)){
-					setFollowedTag(num);
-					break;
-				}
+			}else{
+				StringBuilder sb = new StringBuilder();
+				sb.append(translator.getIDidntCatchThat());
+				sb.append(" ");
+				sb.append(result);
+				textProcessor.speak(sb.toString());
 			}
+			
 			
 			break;
 		case STATE_TAG_WAS_LOST:
+			textProcessor.speak(translator.getDontSeeTagz());
 			break;
 		}
 	}
@@ -190,7 +209,13 @@ public abstract class RobotSpeechProcessor implements SpeechToTextListener, TTSC
 
 	@Override
 	public void onEvent(int type) {
-		// TODO Auto-generated method stub
-		
+		if(type < 10){
+			if(errorCounter > MAX_ERROR_NUM ){
+				textProcessor.speak(translator.getErrorString(type) + translator.getFatalError());
+			}else{
+				textProcessor.speak(translator.getErrorString(type) + translator.getError());
+			}
+			errorCounter++;
+		}
 	}
 }

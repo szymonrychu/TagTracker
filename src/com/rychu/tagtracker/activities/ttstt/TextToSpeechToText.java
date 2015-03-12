@@ -53,13 +53,16 @@ public class TextToSpeechToText {
 	private int[] waitingForEndTalking;
 	private String response;
 	private Boolean interrupted;
+	private Locale defaultLocale = null;
 	public String[] getAvailableCountries(){
 		return Locale.getISOCountries();
 	}
 	public String[] getAvailableLanguages(){
 		return Locale.getISOLanguages();
 	}
-	
+	public void setLocale(Locale locale){
+		
+	}
 	private Runnable onUIThread = new Runnable() {
         @Override
         public void run() {
@@ -133,7 +136,8 @@ public class TextToSpeechToText {
 					}
 				});
 				Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-		        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
+				Log.d(TAG, "locale: " + defaultLocale.toString());
+		        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, defaultLocale.toString());
         		recognizer.startListening(intent);
         	}
         }
@@ -144,6 +148,7 @@ public class TextToSpeechToText {
 	public TextToSpeechToText(Context context){
 		
 		this.context = context;
+		this.defaultLocale = Locale.US;
 	}
 	private Boolean speakAndRecognize;
 	public void setSpeechToTextListener(SpeechToTextListener listener){
@@ -197,7 +202,7 @@ public class TextToSpeechToText {
 			@Override
 			public void onInit(int status) {
 				if(status == TextToSpeech.SUCCESS){
-					tts.setLanguage(Locale.US);
+					tts.setLanguage(defaultLocale);
 					tts.setOnUtteranceProgressListener(new UtteranceProgressListener(){
 						@Override
 						public void onStart(String utteranceId) {
